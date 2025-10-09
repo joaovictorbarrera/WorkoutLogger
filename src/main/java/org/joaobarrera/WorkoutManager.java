@@ -58,7 +58,7 @@ class WorkoutManager {
                 return new OperationResult<>(true, updatedWorkout, "Updated workout ID: " + WorkoutID);
             }
         }
-        return new OperationResult<>(false, null, "Workout ID " + WorkoutID + " does not exist.");
+        return new OperationResult<>(false, null, "There are no records with Workout ID " + WorkoutID);
     }
 
     // Deletes all occurrences of a workout with a matching ID
@@ -80,7 +80,7 @@ class WorkoutManager {
         return new OperationResult<>(
                 false,
                 null,
-                "Workout ID " + WorkoutID + " does not exist."
+                "There are no records with Workout ID " + WorkoutID
         );
     }
 

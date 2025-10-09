@@ -4,7 +4,9 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Scanner;
+import java.util.function.Function;
 
+// Main class for CLI interaction — handles all user input/output and delegates logic to WorkoutManager
 class CLIApp {
     private final WorkoutManager workoutManager;
     private final Scanner scanner;
@@ -14,6 +16,7 @@ class CLIApp {
         this.scanner = new Scanner(System.in);
     }
 
+    // Main menu loop: continuously prompt the user until they choose to exit
     public void run() {
         while (true) {
             int choice = displayMenuAndGetChoice();
@@ -28,6 +31,7 @@ class CLIApp {
                 case 8 -> handleExportToFile();
                 case 9 -> {
                     System.out.println("Exiting...");
+                    System.exit(0);
                     return;
                 }
                 default -> System.out.println("Invalid choice");
@@ -62,80 +66,92 @@ class CLIApp {
     }
 
     private Workout getWorkoutInput() {
-        String name;
-        boolean valid;
-        do {
-            System.out.print("Enter name: ");
-            name = scanner.nextLine();
-            String error = workoutManager.validateName(name);
-            valid = error == null;
-            if (!valid) System.out.println(error);
-        } while (!valid);
+        System.out.println("\nEnter workout details (type -1 at any time to cancel)");
 
-        LocalDateTime startDateTime;
-        do {
-            System.out.print("Enter date/time (YYYY-MM-DDTHH:MM): ");
-            startDateTime = parseDateTime(scanner.nextLine());
-            String error = workoutManager.validateStartDateTime(startDateTime);
-            valid = error == null;
-            if (!valid) System.out.println(error);
-        } while (!valid);
+        String name = promptAndValidate("Enter name: ",
+                s -> s,
+                workoutManager::validateName);
+        if (name == null) return null;
 
-        Integer duration;
-        do {
-            System.out.print("Enter duration (minutes): ");
-            duration = parseDuration(scanner.nextLine());
-            String error = workoutManager.validateDuration(duration);
-            valid = error == null;
-            if (!valid) System.out.println(error);
-        } while (!valid);
+        LocalDateTime startDateTime = promptAndValidate(
+                "Enter date/time (YYYY-MM-DDTHH:MM): ",
+                this::parseDateTime,
+                workoutManager::validateStartDateTime);
+        if (startDateTime == null) return null;
 
-        Double distance;
-        do {
-            System.out.print("Enter distance: ");
-            distance = parseDistance(scanner.nextLine());
-            String error = workoutManager.validateDistance(distance);
-            valid = error == null;
-            if (!valid) System.out.println(error);
-        } while (!valid);
+        Integer duration = promptAndValidate(
+                "Enter duration (minutes): ",
+                this::parseDuration,
+                workoutManager::validateDuration);
+        if (duration == null) return null;
 
-        UnitType unit;
-        do {
-            System.out.print("Enter unit (KILOMETERS/MILES): ");
-            unit = parseUnit(scanner.nextLine());
-            String error = workoutManager.validateUnit(unit);
-            valid = error == null;
-            if (!valid) System.out.println(error);
-        } while (!valid);
+        Double distance = promptAndValidate(
+                "Enter distance: ",
+                this::parseDistance,
+                workoutManager::validateDistance);
+        if (distance == null) return null;
 
-        String notes;
-        do {
-            System.out.print("Enter notes (optional, max 200 chars): ");
-            notes = scanner.nextLine();
-            String error = workoutManager.validateNotes(notes);
-            valid = error == null;
-            if (!valid) System.out.println(error);
-        } while (!valid);
+        UnitType unit = promptAndValidate(
+                "Enter unit (KILOMETERS/MILES): ",
+                this::parseUnit,
+                workoutManager::validateUnit);
+        if (unit == null) return null;
+
+        String notes = promptAndValidate(
+                "Enter notes (optional, max 200 chars): ",
+                s -> s,
+                workoutManager::validateNotes);
+        if (notes == null) return null;
 
         return new Workout(name, startDateTime, duration, distance, unit, notes);
     }
 
-    private Integer getWorkoutIDInput() {
-        int workoutID = Integer.parseInt(scanner.nextLine());
-        if (workoutID == -1) return -1;
+    private <T> T promptAndValidate(String prompt, Function<String, T> parser, Function<T, String> validator) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
 
-        String error = workoutManager.validateID(workoutID);
-        if (error != null) {
+            // Allow user to cancel input
+            if (input.equals("-1")) {
+                return null;
+            }
+
+            T value = parser.apply(input);
+            String error = validator.apply(value);
+
+            if (error == null) return value;
             System.out.println(error);
-            return null;
         }
-
-        if (!workoutManager.IDExists(workoutID)) {
-            System.out.println("Workout ID does not exist.");
-            return null;
-        }
-        return workoutID;
     }
+
+    private Integer getWorkoutIDInput(String prompt) {
+        while (true) {
+            System.out.print(prompt);
+            String input = scanner.nextLine().trim();
+
+            if (input.equals("-1")) return -1;
+            int workoutID;
+            try {
+                workoutID = Integer.parseInt(input);
+            } catch (NumberFormatException e) {
+                System.out.println("Invalid input. Please enter a numeric Workout ID.");
+                continue;
+            }
+
+            String error = workoutManager.validateID(workoutID);
+            if (error != null) {
+                System.out.println(error);
+                continue;
+            }
+
+            if (!workoutManager.IDExists(workoutID)) {
+                System.out.println("There are no records with Workout ID " + workoutID);
+                continue;
+            }
+            return workoutID;
+        }
+    }
+
 
     private LocalDateTime parseDateTime(String input) {
         try {
@@ -171,46 +187,38 @@ class CLIApp {
 
     private boolean handleAddWorkout() {
         Workout workout = getWorkoutInput();
+        if (workout == null) {
+            System.out.println("Aborted.");
+            return false;
+        }
         OperationResult<Workout> addOperationResult = workoutManager.addWorkout(workout);
         System.out.println(addOperationResult.getMessage());
         return addOperationResult.isSuccess();
     }
 
     private boolean handleEditWorkout() {
-        Integer workoutID = null;
-        do {
-            try {
-                System.out.print("Enter workout ID to edit (-1 to cancel): ");
-                workoutID = getWorkoutIDInput();
-                if (workoutID != null && workoutID == -1) {
-                    System.out.println("Aborted.");
-                    return false;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a numeric Workout ID.");
-            }
-        } while (workoutID == null);
+        Integer workoutID = getWorkoutIDInput("Enter workout ID to edit (-1 to cancel): ");
+        if (workoutID == -1) {
+            System.out.println("Aborted.");
+            return false;
+        }
 
         Workout updatedWorkout = getWorkoutInput();
+        if (updatedWorkout == null) {
+            System.out.println("Aborted.");
+            return false;
+        }
         OperationResult<Workout> updateOperationResult = workoutManager.updateWorkout(workoutID, updatedWorkout);
         System.out.println(updateOperationResult.getMessage());
         return updateOperationResult.isSuccess();
     }
 
     private boolean handleDeleteWorkout() {
-        Integer workoutID = null;
-        do {
-            try {
-                System.out.print("Enter workout ID to delete (-1 to cancel): ");
-                workoutID = getWorkoutIDInput();
-                if (workoutID != null && workoutID == -1) {
-                    System.out.println("Aborted.");
-                    return false;
-                }
-            } catch (NumberFormatException e) {
-                System.out.println("Invalid input. Please enter a numeric Workout ID.");
-            }
-        } while (workoutID == null);
+        Integer workoutID = getWorkoutIDInput("Enter workout ID to edit (-1 to cancel): ");
+        if (workoutID == -1) {
+            System.out.println("Aborted.");
+            return false;
+        }
 
         OperationResult<Workout> deleteOperationResult = workoutManager.deleteWorkout(workoutID);
         System.out.println(deleteOperationResult.getMessage());
