@@ -20,13 +20,13 @@ Morning Run,2025-10-07T06:30,45,5.0,KILOMETERS,Felt great
 Evening Walk,2025-10-07T18:15,30,2.0,MILES,Relaxing walk
 Lunch Jog,2025-10-07T12:00,25,3.5,KILOMETERS,Quick jog before work
 
-The program will only export to .txt and .csv filepaths, but it can read any kind of text-based file.
+The program will only export to .txt and .csv file paths, but it can read any kind of text-based file.
 
 */
 
 class CLIApp {
-    private WorkoutManager workoutManager;
-    private Scanner scanner;
+    private final WorkoutManager workoutManager;
+    private final Scanner scanner;
 
     public CLIApp(WorkoutManager manager) {
         this.workoutManager = manager;
@@ -82,7 +82,7 @@ class CLIApp {
 
     private Workout getWorkoutInput() {
         String name;
-        boolean valid = false;
+        boolean valid;
         do {
             System.out.print("Enter name: ");
             name = scanner.nextLine();
@@ -92,7 +92,6 @@ class CLIApp {
         } while (!valid);
 
         LocalDateTime startDateTime;
-        valid = false;
         do {
             System.out.print("Enter date/time (YYYY-MM-DDTHH:MM): ");
             startDateTime = parseDateTime(scanner.nextLine());
@@ -102,7 +101,6 @@ class CLIApp {
         } while (!valid);
 
         Integer duration;
-        valid = false;
         do {
             System.out.print("Enter duration (minutes): ");
             duration = parseDuration(scanner.nextLine());
@@ -112,7 +110,6 @@ class CLIApp {
         } while (!valid);
 
         Double distance;
-        valid = false;
         do {
             System.out.print("Enter distance: ");
             distance = parseDistance(scanner.nextLine());
@@ -122,7 +119,6 @@ class CLIApp {
         } while (!valid);
 
         UnitType unit;
-        valid = false;
         do {
             System.out.print("Enter unit (KILOMETERS/MILES): ");
             unit = parseUnit(scanner.nextLine());
@@ -132,7 +128,6 @@ class CLIApp {
         } while (!valid);
 
         String notes;
-        valid = false;
         do {
             System.out.print("Enter notes (optional, max 200 chars): ");
             notes = scanner.nextLine();
@@ -291,7 +286,7 @@ class CLIApp {
 
     private List<Workout> handleConvertUnits() {
         UnitType unitTarget;
-        boolean valid = false;
+        boolean valid;
         do {
             System.out.print("Enter target unit (KILOMETERS/MILES): ");
             unitTarget = parseUnit(scanner.nextLine());
