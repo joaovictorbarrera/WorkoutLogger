@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Scanner;
 import java.util.function.Function;
 
-// Main class for CLI interaction — handles all user input/output and delegates logic to WorkoutManager
+// Main class for CLI interaction
+// handles all user input/output and delegates logic to WorkoutManager
 class CLIApp {
     private final WorkoutManager workoutManager;
     private final Scanner scanner;
@@ -31,7 +32,6 @@ class CLIApp {
                 case 8 -> handleExportToFile();
                 case 9 -> {
                     System.out.println("Exiting...");
-                    System.exit(0);
                     return;
                 }
                 default -> System.out.println("Invalid choice");
@@ -39,6 +39,7 @@ class CLIApp {
         }
     }
 
+    // Prints menu and gets user’s numeric choice
     private int displayMenuAndGetChoice() {
         System.out.println("\n--- Workout Manager Menu ---");
         System.out.println("1. Import from file");
@@ -65,6 +66,8 @@ class CLIApp {
         return choice;
     }
 
+    // Prompts user for all workout fields, validates each, and returns a Workout object
+    // Returns null if user intentionally canceled by entering -1
     private Workout getWorkoutInput() {
         System.out.println("\nEnter workout details (type -1 at any time to cancel)");
 
@@ -106,6 +109,7 @@ class CLIApp {
         return new Workout(name, startDateTime, duration, distance, unit, notes);
     }
 
+    // Generic prompt+validate loop — applies a parser and validator, repeats until valid or cancelled
     private <T> T promptAndValidate(String prompt, Function<String, T> parser, Function<T, String> validator) {
         while (true) {
             System.out.print(prompt);
@@ -124,12 +128,13 @@ class CLIApp {
         }
     }
 
-    private Integer getWorkoutIDInput(String prompt) {
+    // Asks user for a valid workout ID that exists in memory
+    private Integer getWorkoutIDInput() {
         while (true) {
-            System.out.print(prompt);
+            System.out.print("Enter workout ID to edit (-1 to cancel): ");
             String input = scanner.nextLine().trim();
 
-            if (input.equals("-1")) return -1;
+            if (input.equals("-1")) return -1; // cancel
             int workoutID;
             try {
                 workoutID = Integer.parseInt(input);
@@ -152,7 +157,8 @@ class CLIApp {
         }
     }
 
-
+    // Parses date/time string into LocalDateTime
+    // Returns null if it is unable to parse user input
     private LocalDateTime parseDateTime(String input) {
         try {
             return LocalDateTime.parse(input);
@@ -161,6 +167,8 @@ class CLIApp {
         }
     }
 
+    // Parses duration string into Integer
+    // Returns null if it is unable to parse user input
     private Integer parseDuration(String input) {
         try {
             return Integer.parseInt(input);
@@ -169,6 +177,8 @@ class CLIApp {
         }
     }
 
+    // Parses distance string into Double
+    // Returns null if it is unable to parse user input
     private Double parseDistance(String input) {
         try {
             return Double.parseDouble(input);
@@ -177,6 +187,8 @@ class CLIApp {
         }
     }
 
+    // Parses and converts unit string into UnitType
+    // Returns null if it is unable to parse user input
     private UnitType parseUnit(String input) {
         try {
             return UnitType.valueOf(input.trim().toUpperCase());
@@ -185,6 +197,7 @@ class CLIApp {
         }
     }
 
+    // Adds a new workout based on user input
     private boolean handleAddWorkout() {
         Workout workout = getWorkoutInput();
         if (workout == null) {
@@ -196,8 +209,9 @@ class CLIApp {
         return addOperationResult.isSuccess();
     }
 
+    // Edits an existing workout by Workout ID based on user input
     private boolean handleEditWorkout() {
-        Integer workoutID = getWorkoutIDInput("Enter workout ID to edit (-1 to cancel): ");
+        Integer workoutID = getWorkoutIDInput();
         if (workoutID == -1) {
             System.out.println("Aborted.");
             return false;
@@ -213,8 +227,9 @@ class CLIApp {
         return updateOperationResult.isSuccess();
     }
 
+    // Deletes a workout by ID based on user input
     private boolean handleDeleteWorkout() {
-        Integer workoutID = getWorkoutIDInput("Enter workout ID to edit (-1 to cancel): ");
+        Integer workoutID = getWorkoutIDInput();
         if (workoutID == -1) {
             System.out.println("Aborted.");
             return false;
@@ -225,6 +240,7 @@ class CLIApp {
         return deleteOperationResult.isSuccess();
     }
 
+    // Imports workouts based on file path given by user and adds them to the list
     private List<Workout> handleImportFromFile() {
         OperationResult<List<Workout>> importOperationResult;
         do {
@@ -240,6 +256,7 @@ class CLIApp {
             if (!importOperationResult.isSuccess()) System.out.println(importOperationResult.getMessage());
         } while (!importOperationResult.isSuccess());
 
+        // Add imported workouts one by one
         for (Workout importedWorkout : importOperationResult.getData()) {
             OperationResult<Workout> addOperationResult = workoutManager.addWorkout(importedWorkout);
             if (!addOperationResult.isSuccess()) {
@@ -251,6 +268,7 @@ class CLIApp {
         return importOperationResult.getData();
     }
 
+    // Exports workouts to a file based on a file path given by the user
     private String handleExportToFile() {
         OperationResult<String> exportOperationResult;
         do {
@@ -272,7 +290,7 @@ class CLIApp {
         return exportOperationResult.getData();
     }
 
-
+    // Converts all workouts to a given specified unit (KILOMETERS or MILES)
     private List<Workout> handleConvertUnits() {
         UnitType unitTarget;
         boolean valid;
@@ -289,6 +307,7 @@ class CLIApp {
         return convertOperationResult.getData();
     }
 
+    // Displays all workouts in the system
     private void handleViewWorkouts() {
         List<Workout> all = workoutManager.getAllWorkouts();
         if (all.isEmpty()) {
@@ -298,6 +317,7 @@ class CLIApp {
         }
     }
 
+    // Searches workouts by partial or total name
     private List<Workout> handleFilterWorkouts() {
         System.out.print("Enter search term: ");
         String term = scanner.nextLine();

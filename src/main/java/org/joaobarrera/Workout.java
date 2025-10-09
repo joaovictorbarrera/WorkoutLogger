@@ -22,6 +22,7 @@ public class Workout {
         this.notes = notes;
     }
 
+    // Returns a new workout with the distance units converted to the given target
     public Workout convertUnit(UnitType targetUnit) {
         // If already in the target unit, return itself
         if (this.unit == targetUnit) {
