@@ -8,7 +8,7 @@ import java.io.*;
 
 // Handles creating, updating, deleting, searching, importing, and exporting workouts.
 // Stores all workouts in memory and provides validation and file handling utilities.
-class WorkoutManager {
+public class WorkoutManager {
     private final List<Workout> workouts = new ArrayList<>();
     private int nextID = 1;
 
@@ -20,20 +20,26 @@ class WorkoutManager {
     }
 
     // Adds a new workout after validating it and generating a unique ID
-    public OperationResult<Workout> addWorkout(Workout workout) {
-        if (isWorkoutValid(workout)) {
-            do {
-                workout.setID(nextID++);
-            } while (IDExists(workout.getID()));
+    public OperationResult<List<Workout>> addWorkout(Workout workout) {
+        // Ensures we never add the original reference to the list to prevent external mutation
+        workout = new Workout(workout);
 
-            workouts.add(workout);
-            return new OperationResult<>(true, workout, "Added workout: " + workout.getName());
+        // Validate Workout
+        OperationResult<String> validationResult = validateWorkout(workout);
+        if (!validationResult.isSuccess()) {
+            return new OperationResult<>(false, null, "Workout " + workout.getName() + " has validation errors: " + validationResult.getMessage());
         }
-        return new OperationResult<>(false, null, "Workout " + workout.getName() + " is invalid.");
+
+        do {
+            workout.setID(nextID++);
+        } while (IDExists(workout.getID()));
+
+        workouts.add(workout);
+        return new OperationResult<>(true, List.copyOf(workouts), "Added workout: " + workout.getName());
     }
 
     // Retrieves the full list of workouts
-    public List<Workout> getAllWorkouts() { return workouts; }
+    public List<Workout> getAllWorkouts() { return List.copyOf(workouts); }
 
     // Returns all workouts whose names contain the given search term (case-insensitive).
     // Always succeeds, even if no results are found. Returns a full list if the search-term is an empty string.
@@ -46,36 +52,45 @@ class WorkoutManager {
     }
 
     // Updates a workout in place by matching its ID and replacing it with the specified workout data
-    public OperationResult<Workout> updateWorkout(int WorkoutID, Workout updatedWorkout) {
-        if (!isWorkoutValid(updatedWorkout)) {
-            return new OperationResult<>(false, null, "Workout " + updatedWorkout.getName() + " is invalid.");
+    public OperationResult<List<Workout>> updateWorkout(int WorkoutID, Workout updatedWorkout) {
+        // Validate ID
+        String error = validateID(WorkoutID);
+        if (error != null) return new OperationResult<>(false, null, error);
+
+        // Ensures we never add the original reference to the list to prevent external mutation
+        updatedWorkout = new Workout(updatedWorkout);
+
+        // Validate Workout
+        OperationResult<String> validationResult = validateWorkout(updatedWorkout);
+        if (!validationResult.isSuccess()) {
+            return new OperationResult<>(false, null, "Workout " + updatedWorkout.getName() + " has validation errors: " + validationResult.getMessage());
         }
 
+        // Iterate List of workouts and update workout with given WorkoutID to contain new provided Data
         for (int i = 0; i < workouts.size(); i++) {
             if (workouts.get(i).getID() == WorkoutID) {
                 updatedWorkout.setID(WorkoutID);
                 workouts.set(i, updatedWorkout);
-                return new OperationResult<>(true, updatedWorkout, "Updated workout ID: " + WorkoutID);
+                return new OperationResult<>(true, List.copyOf(workouts), "Updated workout ID: " + WorkoutID);
             }
         }
+
+
         return new OperationResult<>(false, null, "There are no records with Workout ID " + WorkoutID);
     }
 
     // Deletes all occurrences of a workout with a matching ID
-    public OperationResult<Workout> deleteWorkout(int WorkoutID) {
-        Workout lastDeleted = null;
+    public OperationResult<List<Workout>> deleteWorkout(int WorkoutID) {
+        // Validate ID
+        String error = validateID(WorkoutID);
+        if (error != null) return new OperationResult<>(false, null, error);
 
         for (int i = 0; i < workouts.size(); i++) {
             if (workouts.get(i).getID() == WorkoutID) {
-                lastDeleted = workouts.remove(i);
-                i--;
+                workouts.remove(i);
+                return new OperationResult<>(true, List.copyOf(workouts), "Deleted workout with ID: " + WorkoutID);
             }
         }
-
-        if (lastDeleted != null) {
-            return new OperationResult<>(true, lastDeleted, "Deleted workout with ID: " + WorkoutID);
-        }
-
 
         return new OperationResult<>(
                 false,
@@ -92,12 +107,14 @@ class WorkoutManager {
 
         workouts.replaceAll(workout -> workout.convertUnit(targetUnit));
 
-        return new OperationResult<>(true, workouts, "Converted all workouts to " + targetUnit);
+        return new OperationResult<>(true, List.copyOf(workouts), "Converted all workouts to " + targetUnit);
 
     }
 
     // Imports workouts from a file. Expects fields to be comma-separated.
     public OperationResult<List<Workout>> importFromFile(String filePath) {
+
+        // File Path Validation
         if (filePath == null || filePath.trim().isEmpty()) {
             return new OperationResult<>(false, null, "Invalid file path: null or blank.");
         }
@@ -110,6 +127,7 @@ class WorkoutManager {
         List<Workout> importedWorkouts = new ArrayList<>();
         int lineNumber = 0;
 
+        // Begin scanning File
         try (Scanner scanner = new Scanner(file)) {
             while (scanner.hasNextLine()) {
                 lineNumber++;
@@ -131,19 +149,33 @@ class WorkoutManager {
                     UnitType unit = UnitType.valueOf(parts[4].trim().toUpperCase());
                     String notes = parts[5].trim();
 
-                    String error = validateLine(name, startDateTime, duration, distance, unit, notes);
-                    if (error != null) {
-                        return new OperationResult<>(false, null, "Error on line " + lineNumber + ": " + error);
+                    Workout workout = new Workout(name, startDateTime, duration, distance, unit, notes);
+
+                    OperationResult<String> validationResult = validateWorkout(workout);
+
+                    if (!validationResult.isSuccess()) {
+                        return new OperationResult<>(false, null, "Error on line " + lineNumber + ": " + validationResult.getMessage());
                     }
 
-                    Workout workout = new Workout(name, startDateTime, duration, distance, unit, notes);
                     importedWorkouts.add(workout);
                 } catch (Exception e) {
-                    return new OperationResult<>(false, null, "Error on line " + lineNumber + ": unexpected parsing error: " + e.getMessage());
+                    return new OperationResult<>(false, null, "Error on line " + lineNumber + ". Unexpected parsing error: " + e.getMessage());
                 }
             }
         } catch (FileNotFoundException e) {
             return new OperationResult<>(false, null, "File not found: " + e.getMessage());
+        }
+
+        try {
+            // Add imported workouts one by one
+            for (Workout importedWorkout : importedWorkouts) {
+                OperationResult<List<Workout>> addOperationResult = addWorkout(importedWorkout);
+                if (!addOperationResult.isSuccess()) {
+                    throw new Exception("Unexpected Error adding imported workout: " + addOperationResult.getMessage() + ". Please report");
+                }
+            }
+        } catch (Exception e) {
+            return new OperationResult<>(false, null, e.getMessage());
         }
 
         return new OperationResult<>(true, importedWorkouts, "Imported " + importedWorkouts.size() + " workouts from " + filePath);
@@ -223,38 +255,26 @@ class WorkoutManager {
         return valid ? null : "Notes cannot exceed 200 characters.";
     }
 
-    private String validateLine(String name, LocalDateTime startDateTime, Integer duration,
-                                Double distance, UnitType unit, String notes) {
+    private OperationResult<String> validateWorkout(Workout workout) {
 
-        String error = validateName(name);
-        if (error != null) return error;
+        String error = validateName(workout.getName());
+        if (error != null) return new OperationResult<>(false, null, error);
 
-        error = validateStartDateTime(startDateTime);
-        if (error != null) return error;
+        error = validateStartDateTime(workout.getStartDateTime());
+        if (error != null) return new OperationResult<>(false, null, error);
 
-        error = validateDuration(duration);
-        if (error != null) return error;
+        error = validateDuration(workout.getDuration());
+        if (error != null) return new OperationResult<>(false, null, error);
 
-        error = validateDistance(distance);
-        if (error != null) return error;
+        error = validateDistance(workout.getDistance());
+        if (error != null) return new OperationResult<>(false, null, error);
 
-        error = validateUnit(unit);
-        if (error != null) return error;
+        error = validateUnit(workout.getUnit());
+        if (error != null) return new OperationResult<>(false, null, error);
 
-        error = validateNotes(notes);
-        return error;
-    }
+        error = validateNotes(workout.getNotes());
+        if (error != null) return new OperationResult<>(false, null, error);
 
-    // Returns true if all fields in a workout are valid
-    // Does not evaluate workout ID
-    private boolean isWorkoutValid(Workout workout) {
-        return (
-                validateName(workout.getName()) == null &&
-                validateStartDateTime(workout.getStartDateTime()) == null &&
-                validateDuration(workout.getDuration()) == null &&
-                validateDistance(workout.getDistance()) == null &&
-                validateUnit(workout.getUnit()) == null &&
-                validateNotes(workout.getNotes()) == null
-        );
+        return new OperationResult<>(true, null, "Workout is valid.");
     }
 }

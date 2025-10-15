@@ -8,7 +8,7 @@ import java.util.function.Function;
 
 // Main class for CLI interaction
 // handles all user input/output and delegates logic to WorkoutManager
-class CLIApp {
+public class CLIApp {
     private final WorkoutManager workoutManager;
     private final Scanner scanner;
 
@@ -204,7 +204,7 @@ class CLIApp {
             System.out.println("Aborted.");
             return false;
         }
-        OperationResult<Workout> addOperationResult = workoutManager.addWorkout(workout);
+        OperationResult<List<Workout>> addOperationResult = workoutManager.addWorkout(workout);
         System.out.println(addOperationResult.getMessage());
         return addOperationResult.isSuccess();
     }
@@ -222,7 +222,7 @@ class CLIApp {
             System.out.println("Aborted.");
             return false;
         }
-        OperationResult<Workout> updateOperationResult = workoutManager.updateWorkout(workoutID, updatedWorkout);
+        OperationResult<List<Workout>> updateOperationResult = workoutManager.updateWorkout(workoutID, updatedWorkout);
         System.out.println(updateOperationResult.getMessage());
         return updateOperationResult.isSuccess();
     }
@@ -235,7 +235,7 @@ class CLIApp {
             return false;
         }
 
-        OperationResult<Workout> deleteOperationResult = workoutManager.deleteWorkout(workoutID);
+        OperationResult<List<Workout>> deleteOperationResult = workoutManager.deleteWorkout(workoutID);
         System.out.println(deleteOperationResult.getMessage());
         return deleteOperationResult.isSuccess();
     }
@@ -255,14 +255,6 @@ class CLIApp {
 
             if (!importOperationResult.isSuccess()) System.out.println(importOperationResult.getMessage());
         } while (!importOperationResult.isSuccess());
-
-        // Add imported workouts one by one
-        for (Workout importedWorkout : importOperationResult.getData()) {
-            OperationResult<Workout> addOperationResult = workoutManager.addWorkout(importedWorkout);
-            if (!addOperationResult.isSuccess()) {
-                System.out.println(addOperationResult.getMessage());
-            }
-        }
 
         System.out.println(importOperationResult.getMessage());
         return importOperationResult.getData();

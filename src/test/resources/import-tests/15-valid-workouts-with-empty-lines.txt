@@ -1,0 +1,26 @@
+
+
+Morning Run,2025-10-07T06:30,45,5.0,KILOMETERS,Felt great
+Evening Walk,2025-10-07T18:15,30,2.0,MILES,Relaxing walk
+Lunch Jog,2025-10-07T12:00,25,3.5,KILOMETERS,Quick jog before work
+Hill Sprints,2025-10-06T07:00,20,1.2,MILES,Intense sprint session
+Yoga Session,2025-10-06T20:00,60,0,KILOMETERS,Evening yoga routine
+Cycling,2025-10-05T15:30,90,25,KILOMETERS,Road cycling with friends
+
+Trail Run,2025-10-04T08:00,70,10,KILOMETERS,Morning trail run
+Treadmill,2025-10-04T19:00,40,4.0,MILES,Indoor treadmill session
+
+
+Evening Ride,2025-10-02T18:45,80,20.5,MILES,Long after-work ride
+Recovery Walk,2025-10-01T09:00,40,2.5,KILOMETERS,Active recovery day
+Strength Training,2025-09-30T17:30,60,0,KILOMETERS,Focus on upper body
+
+
+
+
+Interval Run,2025-09-29T07:20,35,4.5,KILOMETERS,Alternating sprint and jog
+Mountain Hike,2025-09-28T08:00,180,8.0,MILES,Challenging terrain with great views
+Rowing Session,2025-09-27T07:30,40,6.0,KILOMETERS,Indoor rowing intervals
+
+Group Ride,2025-09-25T07:00,120,40.0,KILOMETERS,Cycling group training session
+

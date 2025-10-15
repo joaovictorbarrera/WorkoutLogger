@@ -1,0 +1,10 @@
+,2025-10-07T06:30,45,5.0,KILOMETERS,Felt great
+Evening Walk,invalid-date,30,2.0,MILES,Relaxing walk
+Lunch Jog,2025-10-07T12:00,-25,3.5,KILOMETERS,Quick jog
+Hill Sprints,2025-10-06T07:00,20,-1.2,MILES,Intense sprint
+Yoga Session,2025-10-06T20:00,60,0,KILOS,Evening yoga
+Cycling,2025-10-05T15:30,90,25,KILOMETERS,This note is way too long.............................................................................
+Swimming,2025-10-05T07:45,50,,MILES,Pool laps
+Trail Run,2025-10-04T08:00,70,10,,Morning trail run
+Treadmill,2025-10-04T19:00,abc,4.0,MILES,Indoor treadmill
+HIIT Workout,2025-10-03T06:15,30,0,KILOMETERS, ,

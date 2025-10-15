@@ -22,6 +22,16 @@ public class Workout {
         this.notes = notes;
     }
 
+    public Workout(Workout other) {
+        this.name = other.name;
+        this.startDateTime = other.startDateTime;
+        this.duration = other.duration;
+        this.distance = other.distance;
+        this.unit = other.unit;
+        this.notes = other.notes;
+        this.workoutID = other.getID();
+    }
+
     // Returns a new workout with the distance units converted to the given target
     public Workout convertUnit(UnitType targetUnit) {
         // If already in the target unit, return itself
@@ -60,8 +70,8 @@ public class Workout {
 
     public String getName() { return name; }
     public LocalDateTime getStartDateTime() { return startDateTime; }
-    public int getDuration() { return duration; }
-    public double getDistance() { return distance; }
+    public Integer getDuration() { return duration; }
+    public Double getDistance() { return distance; }
     public UnitType getUnit() { return unit; }
     public String getNotes() { return notes; }
 
