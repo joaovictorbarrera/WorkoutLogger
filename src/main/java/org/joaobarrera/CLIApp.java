@@ -287,8 +287,14 @@ public class CLIApp {
         UnitType unitTarget;
         boolean valid;
         do {
-            System.out.print("Enter target unit (KILOMETERS/MILES): ");
-            unitTarget = parseUnit(scanner.nextLine());
+            System.out.print("Enter target unit [KILOMETERS/MILES] (-1 to cancel): ");
+            String input = scanner.nextLine();
+            if (input.equals("-1")) {
+                System.out.println("Aborted.");
+                return null;
+            }
+
+            unitTarget = parseUnit(input);
             String error = workoutManager.validateUnit(unitTarget);
             if (error != null) System.out.println(error);
             valid = error == null;
