@@ -1,7 +1,7 @@
-import org.joaobarrera.OperationResult;
-import org.joaobarrera.UnitType;
-import org.joaobarrera.Workout;
-import org.joaobarrera.WorkoutManager;
+import org.joaobarrera.model.OperationResult;
+import org.joaobarrera.model.UnitType;
+import org.joaobarrera.model.Workout;
+import org.joaobarrera.service.WorkoutManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

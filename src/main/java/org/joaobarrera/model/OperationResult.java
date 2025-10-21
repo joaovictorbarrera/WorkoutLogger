@@ -1,4 +1,4 @@
-package org.joaobarrera;
+package org.joaobarrera.model;
 
 public class OperationResult<T> {
     private final boolean success;

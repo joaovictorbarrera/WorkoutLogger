@@ -1,16 +1,23 @@
-package org.joaobarrera;
+package org.joaobarrera.model;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class Workout {
     private Integer workoutID = null; // Assigned when added
-    private final String name;
-    private final LocalDateTime startDateTime;
-    private final Integer duration; // in minutes
-    private final Double distance;
-    private final UnitType unit;
-    private final String notes;
+    private String name;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    private LocalDateTime startDateTime;
+
+    private Integer duration; // in minutes
+    private Double distance;
+    private UnitType unit;
+    private String notes;
+
+    public Workout () {}
 
     public Workout(String name, LocalDateTime startDateTime, Integer duration,
                    Double distance, UnitType unit, String notes) {
@@ -69,11 +76,22 @@ public class Workout {
     public void setID(int id) { this.workoutID = id; }
 
     public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+
     public LocalDateTime getStartDateTime() { return startDateTime; }
+    public void setStartDateTime(LocalDateTime startDateTime) { this.startDateTime = startDateTime; }
+
     public Integer getDuration() { return duration; }
+    public void setDuration(Integer duration) { this.duration = duration; }
+
     public Double getDistance() { return distance; }
+    public void setDistance(Double distance) { this.distance = distance; }
+
     public UnitType getUnit() { return unit; }
+    public void setUnit(UnitType unit) { this.unit = unit; }
+
     public String getNotes() { return notes; }
+    public void setNotes(String notes) { this.notes = notes; }
 
     @Override
     public String toString() {

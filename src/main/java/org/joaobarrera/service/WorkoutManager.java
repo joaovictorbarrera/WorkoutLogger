@@ -1,4 +1,9 @@
-package org.joaobarrera;
+package org.joaobarrera.service;
+
+import org.joaobarrera.model.OperationResult;
+import org.joaobarrera.model.UnitType;
+import org.joaobarrera.model.Workout;
+import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -6,13 +11,16 @@ import java.util.List;
 import java.util.Scanner;
 import java.io.*;
 
+@Service
 // Handles creating, updating, deleting, searching, importing, and exporting workouts.
 // Stores all workouts in memory and provides validation and file handling utilities.
 public class WorkoutManager {
     private final List<Workout> workouts = new ArrayList<>();
     private int nextID = 1;
 
-    public WorkoutManager() {}
+    public WorkoutManager() {
+        System.out.println("WorkoutManager instance created!");
+    }
 
     // Checks if a given workout ID exists
     public boolean IDExists(int workoutID) {

@@ -1,4 +1,9 @@
-package org.joaobarrera;
+package org.joaobarrera.cli;
+
+import org.joaobarrera.model.OperationResult;
+import org.joaobarrera.model.UnitType;
+import org.joaobarrera.model.Workout;
+import org.joaobarrera.service.WorkoutManager;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
