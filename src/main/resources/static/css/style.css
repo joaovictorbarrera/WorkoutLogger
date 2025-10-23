@@ -1,4 +1,210 @@
+/* --- CSS Reset / Normalize --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* --- Body and basic typography --- */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+    background-color: #f8f8f8;
+}
+
+/* -- Main -- */
+main {
+    padding: 20px;
+}
+
+/* -- Header -- */
+header {
+    padding: 1.5rem;
+    background-color: #0051ff;
+    color: white;
+}
+
+/* --- Paragraphs --- */
+p {
+    margin-bottom: 1em;
+}
+
+/* --- Buttons --- */
+button {
+    padding: 0.5em 1em;
+    border: none;
+    background-color: #007bff;
+    color: white;
+    cursor: pointer;
+    border-radius: 4px;
+    font-size: 1rem;
+    user-select: none;
+}
+button:hover {
+    background-color: #0056b3;
+}
+
+#reload-workouts {
+    font-size: 2rem;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #007bff;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+#reload-workouts:hover {
+    transform: rotate(90deg);
+}
+
+#create-workout {
+    background-color: #28a745
+}
+
+#delete-workout {
+    background-color: #dc3545;
+}
+
+/* --- Inputs and Textareas --- */
+input, textarea, select {
+    padding: 0.5em;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    width: 100%;
+    resize: vertical;
+    max-height: 100px;
+}
+
+/* --- Tables --- */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 1em;
+    user-select: none;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 0.5em;
+    text-align: left;
+    max-width: 200px;
+
+    white-space: normal;
+    word-wrap: break-word;
+    word-break: break-word;
+}
+th {
+    background-color: #f2f2f2;
+}
+
+td {
+    background-color: #fff;
+}
+
+/* --- Containers --- */
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.sub-container {
+    display: flex;
+    gap: 2rem;
+    align-items: center;
+    height: 75vh;
+}
+
+.workoutsTable {
+    height: 100%;
+    flex: 2;
+}
+
+.table-wrapper {
+    height: 100%;
+    overflow-y: auto;
+    padding-top: 0.5rem;
+}
+
+.table-wrapper thead, tbody {
+    width: 100%;
+    display: table;
+    table-layout: fixed;
+}
+
+.workoutForm {
+    flex: 1;
+}
+
+.workoutForm form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+}
+
+.features {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+#importForm {
+    display: flex;
+}
+
+/* --- Tables --- */
+tr:hover td {
+    background-color: #007bff;
+    cursor: pointer;
+
+}
+
+.selected-row td {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Custom Styling */
+#formResultMessage {
+    display: none;
+    font-size: 0.9rem;
+}
+
+#formResultMessage.error {
+    color: red;
+    display: block !important;
+}
+
+#formResultMessage.success {
+    color: green;
+    display: block !important;
+}
+
+#search-form {
+    display: flex;
+    gap: 0.5rem;
+    align-items: start;
+    margin-left: auto;
+}
+
+#search-form input {
+    width: 20rem;
+}
+
+.orange-button {
+    background-color: #ffa123;
+}
+
+.orange-button:hover {
+    background-color: #ff9100;
+}
+
+/* Utility */
+.hidden {
+    display: none;
 }

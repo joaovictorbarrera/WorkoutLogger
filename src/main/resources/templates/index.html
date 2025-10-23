@@ -3,32 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <title>Workout Logger</title>
+    <link rel="icon" type="image/x-icon" th:href="@{/favicon.ico}">
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <script th:src="@{/js/script.js}" defer></script>
 </head>
 <body>
-<h1>Welcome to the Workout Logger!</h1>
-<p>This page uses Thymeleaf templates.</p>
+<header>
+    <h1>Workout Logger</h1>
+</header>
 
-<table>
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Name</th>
-        <th>Start Date</th>
-        <th>Duration (min)</th>
-        <th>Distance</th>
-        <th>Unit</th>
-        <th>Notes</th>
-    </tr>
-    </thead>
-    <tbody id="workoutsTableBody">
-    <!-- Rows will be inserted here dynamically -->
-    </tbody>
+<main class="container">
+    <div class="sub-container">
+        <div class="workoutForm">
+            <form>
+                <h2>Workout Editor</h2>
 
-<button id="reload-workouts">Reload Workouts</button>
+                <label for="workoutName">Workout Name <input type="text" name="name" id="workoutName"></label>
 
-<button id="add-workout">Add Workout</button>
+                <label for="startDateTime">Start Date/Time <input type="datetime-local" name="startDateTime" id="startDateTime"></label>
 
+                <label for="duration">Duration in Minutes <input type="number" name="duration" id="duration" min="1"></label>
+
+                <label for="distance">Distance <input type="number" name="distance" id="distance" min="0"></label>
+
+                <label for="unit">Unit
+                    <select name="unit" id="unit">
+                        <option value="KILOMETERS">Kilometers</option>
+                        <option value="MILES">Miles</option>
+                    </select>
+                </label>
+
+                <label for="notes">Notes <textarea name="notes" id="notes"></textarea></label>
+
+                <div>
+                    <button type="button" id="create-workout">Add New Workout</button>
+                    <button class="hidden" type="button" id="update-workout">Update Workout</button>
+                    <button class="hidden" type="button" id="delete-workout">Delete Workout</button>
+                </div>
+
+                <span id="formResultMessage"></span>
+            </form>
+        </div>
+        <div class="workoutsTable">
+            <div class="features">
+
+                <button class="orange-button" type="button" id="convert-to-miles">Convert All To Miles</button>
+
+                <button class="orange-button" type="button" id="convert-to-kilometers">Convert All To Kilometers</button>
+
+                <button type="button" id="export-workouts">Export Workouts</button>
+
+                <form id="importForm">
+                    <input type="file" id="workoutFile" accept=".txt,.csv" hidden />
+                    <button type="button" id="import-workouts">Import Workouts</button>
+                </form>
+
+                <form id="search-form">
+                    <input type="text" id="search-input" placeholder="Search by Name">
+                    <label for="search-input" hidden>Search by Name</label>
+
+                    <button type="submit" id="search-button">Search</button>
+                </form>
+
+                <button type="button" id="reload-workouts" title="Reload Workouts">⟳</button>
+
+            </div>
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Start Date</th>
+                        <th>Duration (min)</th>
+                        <th>Distance</th>
+                        <th>Unit</th>
+                        <th>Notes</th>
+                    </tr>
+                    </thead>
+                    <tbody id="workoutsTableBody">
+                    <!-- Rows will be inserted here dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</main>
 </body>
 </html>
