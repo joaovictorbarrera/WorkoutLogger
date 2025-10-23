@@ -16,7 +16,18 @@
     <div class="sub-container">
         <div class="workoutForm">
             <form>
-                <h2>Workout Editor</h2>
+                <div class="export-import">
+                    <h2>Workout Editor</h2>
+
+                    <div class="buttons">
+                        <button type="button" id="export-workouts">Export Workouts</button>
+
+                        <div id="importForm">
+                            <input type="file" id="workoutFile" accept=".txt,.csv" hidden />
+                            <button type="button" id="import-workouts">Import Workouts</button>
+                        </div>
+                    </div>
+                </div>
 
                 <label for="workoutName">Workout Name <input type="text" name="name" id="workoutName"></label>
 
@@ -50,13 +61,6 @@
                 <button class="orange-button" type="button" id="convert-to-miles">Convert All To Miles</button>
 
                 <button class="orange-button" type="button" id="convert-to-kilometers">Convert All To Kilometers</button>
-
-                <button type="button" id="export-workouts">Export Workouts</button>
-
-                <form id="importForm">
-                    <input type="file" id="workoutFile" accept=".txt,.csv" hidden />
-                    <button type="button" id="import-workouts">Import Workouts</button>
-                </form>
 
                 <form id="search-form">
                     <input type="text" id="search-input" placeholder="Search by Name">

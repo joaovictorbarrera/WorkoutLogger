@@ -50,7 +50,7 @@ searchForm.addEventListener("submit", (e) => {
 createWorkoutButton.addEventListener("click", () => {
     resetResultMessage()
 
-    const formData = getFormData()
+    const formData = getWorkoutFormData()
     if (!formData) return;
 
     fetch("/api/WorkoutsCreate", {
@@ -86,7 +86,7 @@ updateWorkoutButton.addEventListener("click", () => {
 
     const id = getIdFromSelectedRow()
 
-    const formData = getFormData()
+    const formData = getWorkoutFormData()
     if (!formData) return;
 
     fetch("/api/WorkoutsUpdateByID", {
@@ -113,7 +113,6 @@ updateWorkoutButton.addEventListener("click", () => {
             clearWorkoutForm()
         })
 });
-
 
 deleteWorkoutButton.addEventListener("click", () => {
     resetResultMessage()
@@ -238,7 +237,7 @@ exportWorkoutsButton.addEventListener("click", () => {
         // Get the file as a Blob
         const blob = await response.blob();
 
-        // Create a temporary link to download
+        // Create a temporary link to download and use a DOM element to action it
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
@@ -254,6 +253,7 @@ exportWorkoutsButton.addEventListener("click", () => {
 
 });
 
+// Use the regular button to open the file input
 importButton.addEventListener("click", () => {
     workoutFile.click();
 });
@@ -298,6 +298,7 @@ function updateSelectedButtonsVisibility() {
         deleteWorkoutButton.classList.add("hidden");
     }
 }
+
 function getIdFromSelectedRow() {
     if (!selectedRow) return null;
     return parseInt(selectedRow.dataset.id);
@@ -310,6 +311,7 @@ function populateWorkoutsTable(data) {
         workouts = data;
         updateSelectedButtonsVisibility()
 
+        // For every workout, build a table row and append to the table body
         data.forEach(workout => {
             const tr = document.createElement("tr");
 
@@ -345,12 +347,14 @@ function populateWorkoutsTable(data) {
         })
 }
 
+// Resets error/success message
 function resetResultMessage() {
     formResultMessage.textContent = "";
     formResultMessage.classList.remove("error", "success");
 }
 
-function getFormData() {
+// Get all values from workout form and return data as an object
+function getWorkoutFormData() {
     const name = document.getElementById("workoutName").value.trim();
     const startDateTime = document.getElementById("startDateTime").value;
     const duration = parseInt(document.getElementById("duration").value);

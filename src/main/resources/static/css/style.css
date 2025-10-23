@@ -83,7 +83,6 @@ input, textarea, select {
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-bottom: 1em;
     user-select: none;
 }
 th, td {
@@ -114,19 +113,29 @@ td {
 .sub-container {
     display: flex;
     gap: 2rem;
-    align-items: center;
+    align-items: start;
     height: 75vh;
 }
 
 .workoutsTable {
     height: 100%;
+    display: flex;
+    flex-direction: column;
     flex: 2;
 }
 
 .table-wrapper {
+    flex: 1;
     height: 100%;
+    margin-top: 0.5rem;
+    background-color: white;
     overflow-y: auto;
-    padding-top: 0.5rem;
+    overflow-x: hidden;
+    border: 1px solid #ccc;
+}
+
+.table-wrapper table {
+    height: 100%;
 }
 
 .table-wrapper thead, tbody {
@@ -137,6 +146,9 @@ td {
 
 .workoutForm {
     flex: 1;
+    height: 100%;
+    overflow-y: auto;
+    padding-inline: 0.5rem;
 }
 
 .workoutForm form {
@@ -148,7 +160,7 @@ td {
 
 .features {
     display: flex;
-    align-items: center;
+    align-items: start;
     gap: 0.5rem;
     width: 100%;
 }
@@ -189,11 +201,12 @@ tr:hover td {
     display: flex;
     gap: 0.5rem;
     align-items: start;
-    margin-left: auto;
+    flex: 1;
 }
 
 #search-form input {
-    width: 20rem;
+    min-width: 10rem;
+    width: 100%;
 }
 
 .orange-button {
@@ -202,6 +215,34 @@ tr:hover td {
 
 .orange-button:hover {
     background-color: #ff9100;
+}
+
+.export-import {
+    display: flex;
+    width: 100%;
+    align-items: start;
+}
+
+.export-import .buttons {
+    margin-left: auto;
+    display: flex;
+    gap: 0.5rem;
+}
+
+@media screen and (max-width: 1600px) {
+    .export-import {
+        flex-direction: column;
+    }
+
+    .export-import .buttons {
+        margin-left: 0;
+    }
+}
+
+@media screen and (max-width: 1050px) {
+    .export-import .buttons {
+        flex-direction: column;
+    }
 }
 
 /* Utility */
