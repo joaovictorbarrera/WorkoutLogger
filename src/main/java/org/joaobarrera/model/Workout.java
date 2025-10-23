@@ -1,6 +1,8 @@
 package org.joaobarrera.model;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.joaobarrera.config.LocalDateTimeDeserializer;
+import org.joaobarrera.config.UnitTypeDeserializer;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -9,14 +11,17 @@ public class Workout {
     private Integer workoutID = null; // Assigned when added
     private String name;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm")
+    @JsonDeserialize(using = LocalDateTimeDeserializer.class)
     private LocalDateTime startDateTime;
+
+    @JsonDeserialize(using = UnitTypeDeserializer.class)
+    private UnitType unit;
 
     private Integer duration; // in minutes
     private Double distance;
-    private UnitType unit;
     private String notes;
 
+    // Deserializer needs default constructor
     public Workout () {}
 
     public Workout(String name, LocalDateTime startDateTime, Integer duration,
@@ -73,7 +78,7 @@ public class Workout {
 
     // Getters and Setters
     public Integer getID() { return workoutID; }
-    public void setID(int id) { this.workoutID = id; }
+    public void setID(Integer id) { this.workoutID = id; }
 
     public String getName() { return name; }
     public void setName(String name) { this.name = name; }
@@ -97,7 +102,7 @@ public class Workout {
     public String toString() {
         return "WorkoutID: " + workoutID +
                 ", Name: " + name +
-                ", Start: " + startDateTime.format(DateTimeFormatter.ofPattern("MM/dd/yyyy 'at' HH:mm")) +
+                ", Start: " + (startDateTime == null ? "null" : startDateTime.format(DateTimeFormatter.ofPattern("MM/dd/yyyy 'at' HH:mm"))) +
                 ", Duration: " + duration + " minutes" +
                 ", Distance: " + String.format("%.2f", distance) +
                 " " + unit +
