@@ -37,6 +37,26 @@ public class WorkoutManagerAddTest {
         assertTrue(workoutManager.getAllWorkouts().isEmpty());
     }
 
+    @DisplayName("Should succeed when workout name is exactly 50 characters")
+    @Test
+    public void addWorkout_ShouldSucceed_WhenNameIs50Chars() {
+        String name50 = "A".repeat(50);
+        Workout workout = new Workout(name50, LocalDateTime.parse("2025-10-10T12:00"), 10, 10.0, UnitType.KILOMETERS, "");
+        OperationResult<List<Workout>> addResult = workoutManager.addWorkout(workout);
+        assertTrue(addResult.isSuccess());
+        assertEquals(1, workoutManager.getAllWorkouts().size());
+    }
+
+    @DisplayName("Should fail when workout name exceeds 50 characters")
+    @Test
+    public void addWorkout_ShouldFail_WhenNameExceeds50Chars() {
+        String name51 = "A".repeat(51);
+        Workout workout = new Workout(name51, LocalDateTime.parse("2025-10-10T12:00"), 10, 10.0, UnitType.KILOMETERS, "");
+        OperationResult<List<Workout>> addResult = workoutManager.addWorkout(workout);
+        assertFalse(addResult.isSuccess());
+        assertTrue(workoutManager.getAllWorkouts().isEmpty());
+    }
+
     @DisplayName("Should fail to add workout when StartDateTime is null")
     @Test
     public void addWorkout_ShouldFail_WhenStartDateTimeIsBad() {

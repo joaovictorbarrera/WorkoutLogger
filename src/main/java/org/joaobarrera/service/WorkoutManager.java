@@ -18,13 +18,11 @@ public class WorkoutManager {
     private final List<Workout> workouts = new ArrayList<>();
     private int nextID = 1;
 
-    public WorkoutManager() {
-        System.out.println("WorkoutManager instance created!");
-    }
+    public WorkoutManager() { }
 
     // Checks if a given workout ID exists
-    public boolean IDExists(int workoutID) {
-        return workouts.stream().anyMatch(w -> w.getID() == workoutID);
+    public boolean IDExists(Integer workoutID) {
+        return workouts.stream().anyMatch(w -> w.getID().intValue() == workoutID);
     }
 
     // Adds a new workout after validating it and generating a unique ID
@@ -60,9 +58,9 @@ public class WorkoutManager {
     }
 
     // Updates a workout in place by matching its ID and replacing it with the specified workout data
-    public OperationResult<List<Workout>> updateWorkout(int WorkoutID, Workout updatedWorkout) {
+    public OperationResult<List<Workout>> updateWorkout(Integer workoutID, Workout updatedWorkout) {
         // Validate ID
-        String error = validateID(WorkoutID);
+        String error = validateID(workoutID);
         if (error != null) return new OperationResult<>(false, null, error);
 
         // Ensures we never add the original reference to the list to prevent external mutation
@@ -74,27 +72,27 @@ public class WorkoutManager {
             return new OperationResult<>(false, null, "Workout " + updatedWorkout.getName() + " has validation errors: " + validationResult.getMessage());
         }
 
-        // Iterate List of workouts and update workout with given WorkoutID to contain new provided Data
+        // Iterate over the List of workouts and update workout with given workoutID to contain new provided Data
         for (int i = 0; i < workouts.size(); i++) {
-            if (workouts.get(i).getID() == WorkoutID) {
-                updatedWorkout.setID(WorkoutID);
+            if (workouts.get(i).getID().intValue() == workoutID) {
+                updatedWorkout.setID(workoutID);
                 workouts.set(i, updatedWorkout);
-                return new OperationResult<>(true, List.copyOf(workouts), "Updated workout ID: " + WorkoutID);
+                return new OperationResult<>(true, List.copyOf(workouts), "Updated workout ID: " + workoutID);
             }
         }
 
 
-        return new OperationResult<>(false, null, "There are no records with Workout ID " + WorkoutID);
+        return new OperationResult<>(false, null, "There are no records with Workout ID=" + workoutID);
     }
 
     // Deletes all occurrences of a workout with a matching ID
-    public OperationResult<List<Workout>> deleteWorkout(int WorkoutID) {
+    public OperationResult<List<Workout>> deleteWorkout(Integer WorkoutID) {
         // Validate ID
         String error = validateID(WorkoutID);
         if (error != null) return new OperationResult<>(false, null, error);
 
         for (int i = 0; i < workouts.size(); i++) {
-            if (workouts.get(i).getID() == WorkoutID) {
+            if (workouts.get(i).getID().intValue() == WorkoutID) {
                 workouts.remove(i);
                 return new OperationResult<>(true, List.copyOf(workouts), "Deleted workout with ID: " + WorkoutID);
             }
@@ -103,7 +101,7 @@ public class WorkoutManager {
         return new OperationResult<>(
                 false,
                 null,
-                "There are no records with Workout ID " + WorkoutID
+                "There are no records with Workout ID=" + WorkoutID
         );
     }
 
@@ -234,13 +232,13 @@ public class WorkoutManager {
     }
 
     public String validateName(String name) {
-        boolean valid = name != null && !name.trim().isEmpty();
-        return valid ? null : "Workout name cannot be null or empty." ;
+        boolean valid = name != null && !name.trim().isEmpty() && name.length() <= 50;
+        return valid ? null : "Workout name cannot be null or empty or longer than 50 characters." ;
     }
 
     public String validateStartDateTime(LocalDateTime start) {
         boolean valid = start != null;
-        return valid ? null : "Start date/time cannot be null and must be in YYYY-MM-DDTHH:MM format (e.g. 2025-10-04T14:30).";
+        return valid ? null : "Start date/time cannot be null and must be in 'YYYY-MM-DDTHH:MM' format (e.g. 2025-10-04T14:30).";
     }
 
     public String validateDuration(Integer duration) {
