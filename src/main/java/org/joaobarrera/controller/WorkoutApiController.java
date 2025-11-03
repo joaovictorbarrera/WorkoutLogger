@@ -7,6 +7,7 @@ import org.joaobarrera.service.WorkoutManager;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -21,12 +22,13 @@ public class WorkoutApiController {
     }
 
     @GetMapping("/database/name")
-    public ResponseEntity<?> getDatabaseName() {
+    public ResponseEntity<Map<String, Object>> getDatabaseName() {
         String dbName = workoutManager.getCurrentDatabaseName();
 
-        if (dbName == null) return ResponseEntity.badRequest().body(Map.of("error", "No database connected."));
+        Map<String, Object> response = new HashMap<>();
+        response.put("name", dbName);
 
-        return ResponseEntity.ok(Map.of("name", dbName));
+        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/database/connect")
