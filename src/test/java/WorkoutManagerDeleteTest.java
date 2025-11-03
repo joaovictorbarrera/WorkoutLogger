@@ -6,6 +6,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,34 +20,51 @@ public class WorkoutManagerDeleteTest {
 
     private WorkoutManager workoutManager;
 
+    private static final String DB_PATH = "src/test/resources/databases/test.db";
+
     @BeforeEach
-    void setUp() {
+    void setUp() throws SQLException {
+        // Initialize manager
         workoutManager = new WorkoutManager();
+
+        // Ensure test DB file exists
+        File dbFile = new File(DB_PATH);
+        if (!dbFile.exists()) {
+            throw new IllegalStateException("Test database not found: " + DB_PATH);
+        }
+
+        // Connect to test DB
+        workoutManager.connect(DB_PATH);
+
+        // Clear all rows in Workout table
+        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH); Statement stmt = conn.createStatement()) {
+            stmt.executeUpdate("DELETE FROM Workout");
+        }
     }
 
     @Test
     @DisplayName("Should successfully delete workout with matching ID")
     void deleteWorkout_SuccessfullyDeletesMatchingID() {
-        Workout workout = new Workout("Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
+        Workout workout = new Workout(null, "Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
         workoutManager.addWorkout(workout);
-        int idToDelete = workoutManager.getAllWorkouts().get(0).getID();
+        int idToDelete = workoutManager.getAllWorkouts().getData().get(0).getID();
 
         OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
 
         assertTrue(deleteResult.isSuccess());
-        assertEquals(0, workoutManager.getAllWorkouts().size());
+        assertEquals(0, workoutManager.getAllWorkouts().getData().size());
     }
 
     @Test
     @DisplayName("Should fail to delete when ID does not exist")
     void deleteWorkout_FailsWhenIDDoesNotExist() {
-        Workout workout = new Workout("Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
+        Workout workout = new Workout(null, "Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
         workoutManager.addWorkout(workout);
 
         OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(9999);
 
         assertFalse(deleteResult.isSuccess());
-        assertEquals(1, workoutManager.getAllWorkouts().size());
+        assertEquals(1, workoutManager.getAllWorkouts().getData().size());
     }
 
     @Test
@@ -55,61 +77,61 @@ public class WorkoutManagerDeleteTest {
     @Test
     @DisplayName("Should only delete workout with matching ID")
     void deleteWorkout_OnlyDeletesMatchingWorkout() {
-        Workout workout1 = new Workout("Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
-        Workout workout2 = new Workout("Bike", LocalDateTime.now(), 60, 20.0, UnitType.KILOMETERS, "");
+        Workout workout1 = new Workout(null, "Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
+        Workout workout2 = new Workout(null, "Bike", LocalDateTime.now(), 60, 20.0, UnitType.KILOMETERS, "");
 
         workoutManager.addWorkout(workout1);
         workoutManager.addWorkout(workout2);
 
-        int idToDelete = workoutManager.getAllWorkouts().get(0).getID();
+        int idToDelete = workoutManager.getAllWorkouts().getData().get(0).getID();
 
         OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
 
         assertTrue(deleteResult.isSuccess());
-        assertEquals(1, workoutManager.getAllWorkouts().size());
-        assertEquals("Bike", workoutManager.getAllWorkouts().get(0).getName());
+        assertEquals(1, workoutManager.getAllWorkouts().getData().size());
+        assertEquals("Bike", workoutManager.getAllWorkouts().getData().get(0).getName());
     }
 
     @Test
     @DisplayName("Should delete correct workout when multiple with same data")
     void deleteWorkout_DeletesCorrectWorkoutWithSameData() {
-        Workout workout1 = new Workout("Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
-        Workout workout2 = new Workout("Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
+        Workout workout1 = new Workout(null, "Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
+        Workout workout2 = new Workout(null, "Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
 
         workoutManager.addWorkout(workout1);
         workoutManager.addWorkout(workout2);
 
-        int idToNotDelete = workoutManager.getAllWorkouts().get(0).getID();
+        int idToNotDelete = workoutManager.getAllWorkouts().getData().get(0).getID();
 
         // delete second "Run"
-        int idToDelete = workoutManager.getAllWorkouts().get(1).getID();
+        int idToDelete = workoutManager.getAllWorkouts().getData().get(1).getID();
         OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
 
         assertTrue(deleteResult.isSuccess());
-        assertEquals(1, workoutManager.getAllWorkouts().size());
+        assertEquals(1, workoutManager.getAllWorkouts().getData().size());
 
         // Confirm first one still exists
-        assertEquals(idToNotDelete, workoutManager.getAllWorkouts().get(0).getID());
+        assertEquals(idToNotDelete, workoutManager.getAllWorkouts().getData().get(0).getID());
     }
 
     @DisplayName("Should delete middle workout and preserve data integrity of others")
     @Test
     void deleteWorkout_IntegrityPreserved() {
-        Workout w1 = new Workout("Workout1", LocalDateTime.parse("2025-10-10T10:00"), 30, 5.0, UnitType.KILOMETERS, "Morning run");
-        Workout w2 = new Workout("Workout2", LocalDateTime.parse("2025-10-11T11:00"), 45, 10.0, UnitType.KILOMETERS, "Mid-day cycle");
-        Workout w3 = new Workout("Workout3", LocalDateTime.parse("2025-10-12T12:00"), 60, 15.0, UnitType.KILOMETERS, "Evening swim");
+        Workout w1 = new Workout(null, "Workout1", LocalDateTime.parse("2025-10-10T10:00"), 30, 5.0, UnitType.KILOMETERS, "Morning run");
+        Workout w2 = new Workout(null, "Workout2", LocalDateTime.parse("2025-10-11T11:00"), 45, 10.0, UnitType.KILOMETERS, "Mid-day cycle");
+        Workout w3 = new Workout(null, "Workout3", LocalDateTime.parse("2025-10-12T12:00"), 60, 15.0, UnitType.KILOMETERS, "Evening swim");
 
         workoutManager.addWorkout(w1);
         workoutManager.addWorkout(w2);
         workoutManager.addWorkout(w3);
 
         // Grab the ID of the workout in the middle (w2) and delete it
-        int idToDelete = workoutManager.getAllWorkouts().get(1).getID();
+        int idToDelete = workoutManager.getAllWorkouts().getData().get(1).getID();
         OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
         assertTrue(deleteResult.isSuccess());
 
         // Check list size
-        List<Workout> remainingWorkouts = workoutManager.getAllWorkouts();
+        List<Workout> remainingWorkouts = workoutManager.getAllWorkouts().getData();
         assertEquals(2, remainingWorkouts.size());
 
         // Verify w1 is still intact
@@ -131,7 +153,7 @@ public class WorkoutManagerDeleteTest {
         assertEquals("Evening swim", remaining2.getNotes());
 
         // Delete w1
-        idToDelete = workoutManager.getAllWorkouts().get(0).getID();
+        idToDelete = workoutManager.getAllWorkouts().getData().get(0).getID();
         deleteResult = workoutManager.deleteWorkout(idToDelete);
         assertTrue(deleteResult.isSuccess());
 
