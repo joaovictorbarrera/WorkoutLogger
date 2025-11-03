@@ -364,7 +364,7 @@ public class WorkoutManager {
         return idFound && nameFound && distanceFound && unitFound && startDateTimeFound && durationFound && notesFound;
     }
 
-    // -- Helped Methods --
+    // -- Helper Methods --
 
     // Receives a resultSet with workout rows (SQL)
     // Converts each row to a Workout Object and adds to the list
