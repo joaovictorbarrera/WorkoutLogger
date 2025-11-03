@@ -23,11 +23,6 @@ public class WorkoutManager {
 
     // Connects to an SQLite database given by the file path
     public void connect(String dbFilePath) throws SQLException {
-        // if a connection already exists, close it
-        if (connection != null && !connection.isClosed()) {
-            connection.close();
-        }
-
         // Validate the file exists
         File dbFile = new File(dbFilePath);
         if (!dbFile.exists()) {
@@ -36,17 +31,25 @@ public class WorkoutManager {
 
         // Attempt the connection
         String url = "jdbc:sqlite:" + dbFilePath;
-        connection = DriverManager.getConnection(url);
+        Connection newConnection = DriverManager.getConnection(url);
 
         // Check if the database has a Workout table
-        if (!isWorkoutTablePresent()) {
+        if (!isWorkoutTablePresent(newConnection)) {
             throw new IllegalStateException("Workout table not found in the database.");
         }
 
         // Check if the Workout table has all required columns
-        if (!isWorkoutTableValid()) {
+        if (!isWorkoutTableValid(newConnection)) {
             throw new IllegalStateException("Workout table schema is invalid.");
         }
+
+        // if a connection already exists, close it
+        if (connection != null && !connection.isClosed()) {
+            connection.close();
+        }
+
+        // Replace connection
+        connection = newConnection;
     }
 
     public String getCurrentDatabaseName() {
@@ -334,7 +337,7 @@ public class WorkoutManager {
     }
 
     // Check if a table exists
-    private boolean isWorkoutTablePresent() throws SQLException {
+    private boolean isWorkoutTablePresent(Connection connection) throws SQLException {
         DatabaseMetaData meta = connection.getMetaData();
         try (ResultSet rs = meta.getTables(null, null, "Workout", new String[]{"TABLE"})) {
             return rs.next();
@@ -342,7 +345,7 @@ public class WorkoutManager {
     }
 
     // Check if the Workout table has the correct schema
-    private boolean isWorkoutTableValid() throws SQLException {
+    private boolean isWorkoutTableValid(Connection connection) throws SQLException {
         String sql = "PRAGMA table_info(Workout)";
         boolean idFound = false, nameFound = false, distanceFound = false, unitFound = false,
                 startDateTimeFound = false, durationFound = false, notesFound = false;
