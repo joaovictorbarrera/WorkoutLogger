@@ -124,6 +124,36 @@ td {
     flex: 2;
 }
 
+.workoutForm {
+    flex: 1;
+    height: 100%;
+    width: 100%;
+    overflow-y: auto;
+    padding-inline: 0.5rem;
+}
+
+.workoutForm form {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    height: 100%;
+}
+
+@media screen and (max-width: 1100px) {
+    .sub-container {
+        flex-direction: column;
+    }
+
+    .workoutForm {
+        min-height: 50rem;
+    }
+
+    .workoutsTable {
+        flex: 1;
+        margin-bottom: 2rem;
+    }
+}
+
 .table-wrapper {
     flex: 1;
     height: 100%;
@@ -142,20 +172,6 @@ td {
     width: 100%;
     display: table;
     table-layout: fixed;
-}
-
-.workoutForm {
-    flex: 1;
-    height: 100%;
-    overflow-y: auto;
-    padding-inline: 0.5rem;
-}
-
-.workoutForm form {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    height: 100%;
 }
 
 .features {
