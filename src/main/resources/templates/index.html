@@ -16,40 +16,35 @@
     <div class="sub-container">
         <div class="workoutForm">
             <form>
-                <div class="export-import">
+                <div class="workout-editor-header">
                     <h2>Workout Editor</h2>
 
-                    <div class="buttons">
-                        <button type="button" id="export-workouts">Export Workouts</button>
-
-                        <div id="importForm">
-                            <input type="file" id="workoutFile" accept=".txt,.csv" hidden />
-                            <button type="button" id="import-workouts">Import Workouts</button>
-                        </div>
-                    </div>
+                    <button type="button" id="set-database">Set Database</button>
                 </div>
 
-                <label for="workoutName">Workout Name <input type="text" name="name" id="workoutName"></label>
+                <p id="database-name"></p>
 
-                <label for="startDateTime">Start Date/Time <input type="datetime-local" name="startDateTime" id="startDateTime"></label>
+                <label for="workoutName">Workout Name <input type="text" name="name" id="workoutName" disabled></label>
 
-                <label for="duration">Duration in Minutes <input type="number" name="duration" id="duration" min="1"></label>
+                <label for="startDateTime">Start Date/Time <input type="datetime-local" name="startDateTime" id="startDateTime" disabled></label>
 
-                <label for="distance">Distance <input type="number" name="distance" id="distance" min="0"></label>
+                <label for="duration">Duration in Minutes <input type="number" name="duration" id="duration" min="1" disabled></label>
+
+                <label for="distance">Distance <input type="number" name="distance" id="distance" min="0" disabled></label>
 
                 <label for="unit">Unit
-                    <select name="unit" id="unit">
+                    <select name="unit" id="unit" disabled>
                         <option value="KILOMETERS">Kilometers</option>
                         <option value="MILES">Miles</option>
                     </select>
                 </label>
 
-                <label for="notes">Notes <textarea name="notes" id="notes"></textarea></label>
+                <label for="notes">Notes <textarea name="notes" id="notes" disabled></textarea></label>
 
                 <div>
-                    <button type="button" id="create-workout">Add New Workout</button>
-                    <button class="hidden" type="button" id="update-workout">Update Workout</button>
-                    <button class="hidden" type="button" id="delete-workout">Delete Workout</button>
+                    <button type="button" id="create-workout" disabled>Add New Workout</button>
+                    <button class="hidden" type="button" id="update-workout" disabled>Update Workout</button>
+                    <button class="hidden" type="button" id="delete-workout" disabled>Delete Workout</button>
                 </div>
 
                 <span id="formResultMessage"></span>
@@ -58,18 +53,18 @@
         <div class="workoutsTable">
             <div class="features">
 
-                <button class="orange-button" type="button" id="convert-to-miles">Convert All To Miles</button>
+                <button class="orange-button" type="button" id="convert-to-miles" disabled>Convert All To Miles</button>
 
-                <button class="orange-button" type="button" id="convert-to-kilometers">Convert All To Kilometers</button>
+                <button class="orange-button" type="button" id="convert-to-kilometers" disabled>Convert All To Kilometers</button>
 
                 <form id="search-form">
-                    <input type="text" id="search-input" placeholder="Search by Name">
+                    <input type="text" id="search-input" placeholder="Search by Name" disabled>
                     <label for="search-input" hidden>Search by Name</label>
 
-                    <button type="submit" id="search-button">Search</button>
+                    <button type="submit" id="search-button" disabled>Search</button>
                 </form>
 
-                <button type="button" id="reload-workouts" title="Reload Workouts">⟳</button>
+                <button type="button" id="reload-workouts" title="Reload Workouts" disabled>⟳</button>
 
             </div>
             <div class="table-wrapper">

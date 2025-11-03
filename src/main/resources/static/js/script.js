@@ -6,14 +6,11 @@ const updateWorkoutButton = document.getElementById("update-workout");
 const deleteWorkoutButton = document.getElementById("delete-workout");
 const formResultMessage = document.getElementById("formResultMessage");
 
+const setDatabaseButton = document.getElementById("set-database");
+const databaseName = document.getElementById("database-name");
+
 const convertToMilesButton = document.getElementById("convert-to-miles");
 const convertToKilometersButton = document.getElementById("convert-to-kilometers");
-
-const importForm = document.getElementById("importForm")
-const importButton = document.getElementById("import-workouts");
-const workoutFile = document.getElementById("workoutFile");
-
-const exportWorkoutsButton = document.getElementById("export-workouts");
 
 const searchForm = document.getElementById("search-form");
 const searchInput = document.getElementById("search-input");
@@ -21,7 +18,7 @@ const searchInput = document.getElementById("search-input");
 let workouts = {}
 let selectedRow = null;
 
-refreshWorkouts();
+checkDatabaseConnection()
 
 reloadWorkoutsButton.addEventListener("click", refreshWorkouts)
 
@@ -31,14 +28,14 @@ searchForm.addEventListener("submit", (e) => {
     let query = searchInput.value.trim();
     if (!query) query = "";
 
-    fetch(`/api/WorkoutsGetByName?name=${encodeURIComponent(query)}`)
+    fetch(`/api/workout/getByName?name=${encodeURIComponent(query)}`)
     .then(async response => {
         if (response.ok) {
             const data = await response.json();
             populateWorkoutsTable(data);
         } else {
             const errorBody = await response.json();
-            alert("Search failed: " + (errorBody.message || "Unknown error"));
+            alert("Search failed: " + (errorBody.error || "Unknown error"));
         }
     })
     .catch(err => {
@@ -53,7 +50,7 @@ createWorkoutButton.addEventListener("click", () => {
     const formData = getWorkoutFormData()
     if (!formData) return;
 
-    fetch("/api/WorkoutsCreate", {
+    fetch("/api/workout/create", {
         method: "POST",
         body: JSON.stringify(formData),
         headers: {"Content-Type": "application/json"}
@@ -64,7 +61,7 @@ createWorkoutButton.addEventListener("click", () => {
             formResultMessage.classList.add("success");
         } else {
             const errorBody = await response.json()
-            formResultMessage.textContent = errorBody.message || "Failed to add workout.";
+            formResultMessage.textContent = errorBody.error || "Failed to add workout.";
             formResultMessage.classList.add("error");
         }
     })
@@ -85,11 +82,12 @@ updateWorkoutButton.addEventListener("click", () => {
     }
 
     const id = getIdFromSelectedRow()
+    if (!id) return;
 
     const formData = getWorkoutFormData()
     if (!formData) return;
 
-    fetch("/api/WorkoutsUpdateByID", {
+    fetch("/api/workout/updateByID", {
         method: "PUT",
         body: JSON.stringify({
             id,
@@ -103,7 +101,7 @@ updateWorkoutButton.addEventListener("click", () => {
                 formResultMessage.classList.add("success");
             } else {
                 const errorBody = await response.json();
-                formResultMessage.textContent = errorBody.message || "Failed to update workout.";
+                formResultMessage.textContent = errorBody.error || "Failed to update workout.";
                 formResultMessage.classList.add("error");
             }
         })
@@ -124,10 +122,11 @@ deleteWorkoutButton.addEventListener("click", () => {
     }
 
     const id = getIdFromSelectedRow()
+    if (!id) return;
 
     if (confirm("Are you sure you want to delete this workout?") === false) return
 
-    fetch("/api/WorkoutsDeleteByID", {
+    fetch("/api/workout/deleteByID", {
         method: "DELETE",
         body: JSON.stringify({
             "id": id
@@ -140,7 +139,7 @@ deleteWorkoutButton.addEventListener("click", () => {
             formResultMessage.classList.add("success");
         } else {
             const errorBody = await response.json()
-            const errorMessage = errorBody.message
+            const errorMessage = errorBody.error
             window.alert(errorMessage);
         }
     })
@@ -159,10 +158,49 @@ convertToKilometersButton.addEventListener("click", () => {
     convertUnits("KILOMETERS")
 })
 
+setDatabaseButton.addEventListener("click", async () => {
+    const sqlitePath = prompt("Enter SQLite database path:");
+    if (!sqlitePath) return;
+
+    try {
+        const response = await fetch('/api/workout/database/connect?path=' + encodeURIComponent(sqlitePath), {
+            method: 'POST'
+        });
+
+        if (response.ok) {
+            setDatabaseButton.classList.add("success");
+            enableUI();
+            refreshWorkouts();
+            alert("Database connected successfully!");
+            checkDatabaseConnection();
+        } else {
+            const errorBody = await response.json();
+            window.alert("Failed to connect database:\n" + errorBody.error);
+        }
+    } catch (err) {
+        window.alert("Error connecting to database:\n" + err.message);
+    }
+});
+
+function checkDatabaseConnection() {
+    fetch("/api/workout/database/name")
+    .then(async response => {
+        response = await response.json();
+
+        if (response.name) {
+            setDatabaseButton.classList.add("success");
+            enableUI();
+            refreshWorkouts();
+            databaseName.style.display = "block";
+            databaseName.innerText = "Connnected to " + response.name;
+        }
+    })
+}
+
 function convertUnits(unitType) {
     if (confirm("Are you sure you want to convert all workouts to " + unitType + "?") === false) return
 
-    fetch("/api/ConvertUnits", {
+    fetch("/api/workout/convertUnits", {
         method: "PUT",
         body: JSON.stringify(unitType),
         headers: {"Content-Type": "application/json"}
@@ -170,7 +208,7 @@ function convertUnits(unitType) {
     .then(async response => {
         if (!response.ok) {
             const errorBody = await response.json()
-            const errorMessage = errorBody.message
+            const errorMessage = errorBody.error
             window.alert(errorMessage);
         }
     })
@@ -179,14 +217,14 @@ function convertUnits(unitType) {
 }
 
 function refreshWorkouts() {
-    fetch("/api/WorkoutsGet")
+    fetch("/api/workout/getAll")
     .then(async response => {
         if (response.ok) {
             const data = await response.json();
             populateWorkoutsTable(data);
         } else {
             const errorBody = await response.json();
-            alert("Search failed: " + (errorBody.message || "Unknown error"));
+            alert("Search failed: " + (errorBody.error || "Unknown error"));
         }
     })
     .catch(err => {
@@ -194,69 +232,6 @@ function refreshWorkouts() {
         alert("Error fetching workouts.");
     })
 }
-
-workoutFile.addEventListener("change", () => {
-    if (!workoutFile.files.length) {
-        alert("Please choose a file first!");
-        return;
-    }
-
-    const formData = new FormData();
-    formData.append("file", workoutFile.files[0]);
-
-    fetch("/api/ImportWorkouts", {
-        method: "POST",
-        body: formData
-    })
-    .then(async response => {
-        if (response.ok) {
-            alert("File imported successfully");
-        } else {
-            const err = await response.json();
-            alert("Import failed: " + err.message);
-        }
-    })
-    .catch(console.error)
-    .finally(() => {
-        refreshWorkouts()
-        importForm.reset();
-    })
-});
-
-exportWorkoutsButton.addEventListener("click", () => {
-    fetch("/api/ExportWorkouts", {
-        method: "POST"
-    })
-    .then(async response => {
-        if (!response.ok) {
-            const err = await response.json();
-            alert("Failed to export workouts: " + err.message);
-            return;
-        }
-
-        // Get the file as a Blob
-        const blob = await response.blob();
-
-        // Create a temporary link to download and use a DOM element to action it
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "workouts.csv";
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        window.URL.revokeObjectURL(url);
-    })
-    .catch(console.log)
-    .finally(refreshWorkouts)
-
-
-});
-
-// Use the regular button to open the file input
-importButton.addEventListener("click", () => {
-    workoutFile.click();
-});
 
 function selectRow(e) {
     // Remove previous selection highlight
@@ -276,17 +251,16 @@ function selectRow(e) {
     selectedRow.classList.add("selected-row");
     updateSelectedButtonsVisibility();
 
-    // Populate the form fields with the selected row's data
-    const cells = selectedRow.children;
-
-    document.getElementById("workoutName").value = cells[0].innerText;
-    document.getElementById("startDateTime").value = cells[1].innerText;
-    document.getElementById("duration").value = cells[2].innerText;
-    document.getElementById("distance").value = cells[3].innerText;
-    document.getElementById("unit").value = cells[4].innerText;
-    document.getElementById("notes").value = cells[5].innerText;
+    // Insert all values from selected row into Workout Editor
+    document.getElementById("workoutName").value = selectedRow.dataset.name;
+    document.getElementById("startDateTime").value = selectedRow.dataset.startDateTime;
+    document.getElementById("duration").value = selectedRow.dataset.duration;
+    document.getElementById("distance").value = selectedRow.dataset.distance;
+    document.getElementById("unit").value = selectedRow.dataset.unit;
+    document.getElementById("notes").value = selectedRow.dataset.notes;
 }
 
+// Reveals/hides UPDATE and DELETE buttons if there is a selected row
 function updateSelectedButtonsVisibility() {
     const visible = selectedRow !== null;
 
@@ -304,6 +278,7 @@ function getIdFromSelectedRow() {
     return parseInt(selectedRow.dataset.id);
 }
 
+// Parses workout table data from the API into HTML table rows and adds to the screen
 function populateWorkoutsTable(data) {
         // Reset Variables
         workoutTableBody.innerText = ""
@@ -314,17 +289,22 @@ function populateWorkoutsTable(data) {
         // For every workout, build a table row and append to the table body
         data.forEach(workout => {
             const tr = document.createElement("tr");
-
             tr.addEventListener("click", selectRow);
 
             tr.dataset.id = workout.id;
+            tr.dataset.name = workout.name;
+            tr.dataset.startDateTime = workout.startDateTime;
+            tr.dataset.duration = workout.duration;
+            tr.dataset.distance = workout.distance;
+            tr.dataset.unit = workout.unit;
+            tr.dataset.notes = workout.notes;
 
             const name = document.createElement("td");
             name.innerText = workout.name;
             tr.appendChild(name);
 
             const startDateTime = document.createElement("td");
-            startDateTime.innerText = workout.startDateTime;
+            startDateTime.innerText = formatDateTime(workout.startDateTime);
             tr.appendChild(startDateTime);
 
             const duration = document.createElement("td");
@@ -386,4 +366,24 @@ function clearWorkoutForm() {
     document.getElementById("distance").value = "";
     document.getElementById("unit").value = "KILOMETERS";
     document.getElementById("notes").value = "";
+}
+
+function enableUI() {
+    document.querySelectorAll('[disabled]').forEach(el => el.removeAttribute('disabled'));
+}
+
+// Transforms "2025-10-07T18:30:00" into Oct 07, 2025 18:30
+function formatDateTime(dateString) {
+    const date = new Date(dateString);
+
+    const options = {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    };
+
+    return new Intl.DateTimeFormat('en-US', options).format(date);
 }

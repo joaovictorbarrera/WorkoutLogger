@@ -68,7 +68,7 @@ button:hover {
     background-color: #dc3545;
 }
 
-/* --- Inputs and Textareas --- */
+/* --- Inputs and Text areas --- */
 input, textarea, select {
     padding: 0.5em;
     border: 1px solid #ccc;
@@ -217,35 +217,40 @@ tr:hover td {
     background-color: #ff9100;
 }
 
-.export-import {
+#set-database {
+    margin-left: auto;
+    background-color: red;
+}
+
+#set-database.success {
+    background-color: #28a745;
+}
+
+.workout-editor-header {
     display: flex;
     width: 100%;
     align-items: start;
 }
 
-.export-import .buttons {
-    margin-left: auto;
-    display: flex;
-    gap: 0.5rem;
-}
-
-@media screen and (max-width: 1600px) {
-    .export-import {
-        flex-direction: column;
-    }
-
-    .export-import .buttons {
-        margin-left: 0;
-    }
-}
-
-@media screen and (max-width: 1050px) {
-    .export-import .buttons {
-        flex-direction: column;
-    }
-}
-
 /* Utility */
 .hidden {
+    display: none;
+}
+
+button:disabled {
+    background-color: grey;
+    opacity: 0.6;
+    cursor: not-allowed !important;
+}
+
+button:disabled:hover {
+    background-color: grey;
+}
+
+#reload-workouts:disabled {
+    color: grey;
+}
+
+#database-name {
     display: none;
 }
