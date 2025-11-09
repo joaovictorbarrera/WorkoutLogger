@@ -1,24 +1,24 @@
 # WorkoutLogger
+Store, edit, delete, and convert Workout data with the WorkoutLogger Database Management System.
 
-### Workout ID Information
-The final product will have a website in which the WorkoutIDs will be invisible to the user.
-The records will have an ID behind the scenes, but the user will not know about the ID visually.
-An ID will be automatically generated for a record when it's added either through a file import or adding manually.
+![Alt text](https://image.prntscr.com/image/C5d3B7tcS3ySp0taPughjw.png "Workout Logger Website")
 
-### File Import Documentation
-The program can read any kind of text-based file.
 
-File imports do not expect WorkoutID. They only expect the 6 points of data:
+This project relies on SQLite databases to hold its data.
+The user will be prompted for a database file path, and the file needs to exist somewhere in the server-side filesystem.
 
-name, startDateTime, duration, distance, unit, notes
+A valid database contains a Workout Table with the following schema:
 
-These should be comma-separated without spaces.
+```sql
+CREATE TABLE Workout (
+    id INTEGER PRIMARY KEY AUTOINCREMENT CHECK (id > 0),
+    name TEXT NOT NULL CHECK(length(name) <= 50),
+    distance REAL NOT NULL CHECK(distance >= 0),
+    unit TEXT NOT NULL,
+    startDateTime TEXT NOT NULL,
+    duration INTEGER NOT NULL CHECK(duration >= 1),
+    notes TEXT CHECK(length(notes) <= 200)
+);
+```
 
-**Here is an example:**
-- Morning Run,2025-10-07T06:30,45,5.0,KILOMETERS,Felt great
-- Evening Walk,2025-10-07T18:15,30,2.0,MILES,Relaxing walk
-- Lunch Jog,2025-10-07T12:00,25,3.5,KILOMETERS,Quick jog before work
-
-### File Export Documentation
-
-The program will only export to .txt and .csv file paths.
+Project built with Maven. Use Maven Install to compile all dependencies into an Uber JAR file.
