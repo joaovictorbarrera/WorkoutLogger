@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"org.joaobarrera"},{"l":"org.joaobarrera.config"},{"l":"org.joaobarrera.controller"},{"l":"org.joaobarrera.model"},{"l":"org.joaobarrera.service"}];updateSearchResults();

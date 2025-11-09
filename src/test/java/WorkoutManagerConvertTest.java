@@ -16,6 +16,13 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/*
+ * Joao Barrera
+ * CEN 3024 - Software Development 1
+ * November 9, 2025,
+ * WorkoutManagerConvertTest.java
+ * This class uses unit testing to validate the convertUnits() functionality.
+ */
 public class WorkoutManagerConvertTest {
 
     private WorkoutManager workoutManager;
@@ -45,8 +52,8 @@ public class WorkoutManagerConvertTest {
     @DisplayName("Should fail to convert units when no workouts exist")
     void convertAllUnits_ShouldFail_WhenNoWorkouts() {
         OperationResult<List<Workout>> result = workoutManager.convertAllUnits(UnitType.MILES);
-        assertFalse(result.isSuccess());
-        assertNull(result.getData());
+        assertFalse(result.success());
+        assertNull(result.data());
     }
 
     @Test
@@ -58,16 +65,16 @@ public class WorkoutManagerConvertTest {
 
         OperationResult<List<Workout>> result = workoutManager.convertAllUnits(UnitType.MILES);
 
-        assertTrue(result.isSuccess());
-        assertNotNull(result.getData());
-        assertEquals(2, result.getData().size());
+        assertTrue(result.success());
+        assertNotNull(result.data());
+        assertEquals(2, result.data().size());
 
-        Workout firstWorkout = result.getData().get(0);
+        Workout firstWorkout = result.data().get(0);
         assertEquals(UnitType.MILES, firstWorkout.getUnit());
         // 5 km to miles
         assertEquals(3.10686, firstWorkout.getDistance(), 0.0001);
 
-        Workout secondWorkout = result.getData().get(1);
+        Workout secondWorkout = result.data().get(1);
         assertEquals(UnitType.MILES, secondWorkout.getUnit());
         assertEquals(3.0, secondWorkout.getDistance());
     }
@@ -81,16 +88,16 @@ public class WorkoutManagerConvertTest {
 
         OperationResult<List<Workout>> result = workoutManager.convertAllUnits(UnitType.KILOMETERS);
 
-        assertTrue(result.isSuccess());
-        assertNotNull(result.getData());
-        assertEquals(2, result.getData().size());
+        assertTrue(result.success());
+        assertNotNull(result.data());
+        assertEquals(2, result.data().size());
 
-        Workout firstWorkout = result.getData().get(0);
+        Workout firstWorkout = result.data().get(0);
         assertEquals(UnitType.KILOMETERS, firstWorkout.getUnit());
         // 3 miles to km
         assertEquals(4.82802, firstWorkout.getDistance(), 0.0001);
 
-        Workout secondWorkout = result.getData().get(1);
+        Workout secondWorkout = result.data().get(1);
         assertEquals(UnitType.KILOMETERS, secondWorkout.getUnit());
         assertEquals(5.0, secondWorkout.getDistance());
     }
@@ -104,16 +111,16 @@ public class WorkoutManagerConvertTest {
 
         OperationResult<List<Workout>> result = workoutManager.convertAllUnits(UnitType.KILOMETERS);
 
-        assertTrue(result.isSuccess());
-        assertNotNull(result.getData());
-        assertEquals(2, result.getData().size());
+        assertTrue(result.success());
+        assertNotNull(result.data());
+        assertEquals(2, result.data().size());
 
-        Workout firstWorkout = result.getData().get(0);
+        Workout firstWorkout = result.data().get(0);
         assertEquals(UnitType.KILOMETERS, firstWorkout.getUnit());
         // 10 miles to km
         assertEquals(16.0934, firstWorkout.getDistance(), 0.0001);
 
-        Workout secondWorkout = result.getData().get(1);
+        Workout secondWorkout = result.data().get(1);
         assertEquals(UnitType.KILOMETERS, secondWorkout.getUnit());
         // 4 miles to km
         assertEquals(6.4374, secondWorkout.getDistance(), 0.0001);
@@ -127,16 +134,16 @@ public class WorkoutManagerConvertTest {
 
         OperationResult<List<Workout>> result = workoutManager.convertAllUnits(UnitType.MILES);
 
-        assertTrue(result.isSuccess());
-        assertNotNull(result.getData());
-        assertEquals(2, result.getData().size());
+        assertTrue(result.success());
+        assertNotNull(result.data());
+        assertEquals(2, result.data().size());
 
-        Workout firstWorkout = result.getData().get(0);
+        Workout firstWorkout = result.data().get(0);
         assertEquals(UnitType.MILES, firstWorkout.getUnit());
         // 5 km to miles
         assertEquals(3.10686, firstWorkout.getDistance(), 0.0001);
 
-        Workout secondWorkout = result.getData().get(1);
+        Workout secondWorkout = result.data().get(1);
         assertEquals(UnitType.MILES, secondWorkout.getUnit());
         // 8 km to miles
         assertEquals(4.97097, secondWorkout.getDistance(), 0.0001);
@@ -153,10 +160,10 @@ public class WorkoutManagerConvertTest {
 
         // Convert to KILOMETERS
         OperationResult<List<Workout>> resultKm = workoutManager.convertAllUnits(UnitType.KILOMETERS);
-        assertTrue(resultKm.isSuccess());
+        assertTrue(resultKm.success());
 
         // Verify Data Integrity
-        List<Workout> convertedToKm = resultKm.getData();
+        List<Workout> convertedToKm = resultKm.data();
         assertEquals(2, convertedToKm.size());
 
         Workout c1Km = convertedToKm.get(0);
@@ -173,10 +180,10 @@ public class WorkoutManagerConvertTest {
 
         // Convert back to MILES
         OperationResult<List<Workout>> resultMiles = workoutManager.convertAllUnits(UnitType.MILES);
-        assertTrue(resultMiles.isSuccess());
+        assertTrue(resultMiles.success());
 
         // Verify Data Integrity
-        List<Workout> convertedToMiles = resultMiles.getData();
+        List<Workout> convertedToMiles = resultMiles.data();
         assertEquals(2, convertedToMiles.size());
 
         Workout c1Miles = convertedToMiles.get(0);

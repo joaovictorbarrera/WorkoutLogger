@@ -16,6 +16,13 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/*
+ * Joao Barrera
+ * CEN 3024 - Software Development 1
+ * November 9, 2025,
+ * WorkoutManagerDeleteTest.java
+ * This class uses unit testing to validate the deleteWorkout() functionality.
+ */
 public class WorkoutManagerDeleteTest {
 
     private WorkoutManager workoutManager;
@@ -47,12 +54,12 @@ public class WorkoutManagerDeleteTest {
     void deleteWorkout_SuccessfullyDeletesMatchingID() {
         Workout workout = new Workout(null, "Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
         workoutManager.addWorkout(workout);
-        int idToDelete = workoutManager.getAllWorkouts().getData().get(0).getID();
+        int idToDelete = workoutManager.getAllWorkouts().data().get(0).getID();
 
         OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
 
-        assertTrue(deleteResult.isSuccess());
-        assertEquals(0, workoutManager.getAllWorkouts().getData().size());
+        assertTrue(deleteResult.success());
+        assertEquals(0, workoutManager.getAllWorkouts().data().size());
     }
 
     @Test
@@ -63,15 +70,15 @@ public class WorkoutManagerDeleteTest {
 
         OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(9999);
 
-        assertFalse(deleteResult.isSuccess());
-        assertEquals(1, workoutManager.getAllWorkouts().getData().size());
+        assertFalse(deleteResult.success());
+        assertEquals(1, workoutManager.getAllWorkouts().data().size());
     }
 
     @Test
     @DisplayName("Should fail to delete when workout list is empty")
     void deleteWorkout_FailsWhenListIsEmpty() {
         OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(1);
-        assertFalse(deleteResult.isSuccess());
+        assertFalse(deleteResult.success());
     }
 
     @Test
@@ -83,13 +90,13 @@ public class WorkoutManagerDeleteTest {
         workoutManager.addWorkout(workout1);
         workoutManager.addWorkout(workout2);
 
-        int idToDelete = workoutManager.getAllWorkouts().getData().get(0).getID();
+        int idToDelete = workoutManager.getAllWorkouts().data().get(0).getID();
 
         OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
 
-        assertTrue(deleteResult.isSuccess());
-        assertEquals(1, workoutManager.getAllWorkouts().getData().size());
-        assertEquals("Bike", workoutManager.getAllWorkouts().getData().get(0).getName());
+        assertTrue(deleteResult.success());
+        assertEquals(1, workoutManager.getAllWorkouts().data().size());
+        assertEquals("Bike", workoutManager.getAllWorkouts().data().get(0).getName());
     }
 
     @Test
@@ -101,17 +108,17 @@ public class WorkoutManagerDeleteTest {
         workoutManager.addWorkout(workout1);
         workoutManager.addWorkout(workout2);
 
-        int idToNotDelete = workoutManager.getAllWorkouts().getData().get(0).getID();
+        int idToNotDelete = workoutManager.getAllWorkouts().data().get(0).getID();
 
         // delete second "Run"
-        int idToDelete = workoutManager.getAllWorkouts().getData().get(1).getID();
+        int idToDelete = workoutManager.getAllWorkouts().data().get(1).getID();
         OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
 
-        assertTrue(deleteResult.isSuccess());
-        assertEquals(1, workoutManager.getAllWorkouts().getData().size());
+        assertTrue(deleteResult.success());
+        assertEquals(1, workoutManager.getAllWorkouts().data().size());
 
         // Confirm first one still exists
-        assertEquals(idToNotDelete, workoutManager.getAllWorkouts().getData().get(0).getID());
+        assertEquals(idToNotDelete, workoutManager.getAllWorkouts().data().get(0).getID());
     }
 
     @DisplayName("Should delete middle workout and preserve data integrity of others")
@@ -126,12 +133,12 @@ public class WorkoutManagerDeleteTest {
         workoutManager.addWorkout(w3);
 
         // Grab the ID of the workout in the middle (w2) and delete it
-        int idToDelete = workoutManager.getAllWorkouts().getData().get(1).getID();
+        int idToDelete = workoutManager.getAllWorkouts().data().get(1).getID();
         OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
-        assertTrue(deleteResult.isSuccess());
+        assertTrue(deleteResult.success());
 
         // Check list size
-        List<Workout> remainingWorkouts = workoutManager.getAllWorkouts().getData();
+        List<Workout> remainingWorkouts = workoutManager.getAllWorkouts().data();
         assertEquals(2, remainingWorkouts.size());
 
         // Verify w1 is still intact
@@ -153,9 +160,9 @@ public class WorkoutManagerDeleteTest {
         assertEquals("Evening swim", remaining2.getNotes());
 
         // Delete w1
-        idToDelete = workoutManager.getAllWorkouts().getData().get(0).getID();
+        idToDelete = workoutManager.getAllWorkouts().data().get(0).getID();
         deleteResult = workoutManager.deleteWorkout(idToDelete);
-        assertTrue(deleteResult.isSuccess());
+        assertTrue(deleteResult.success());
 
         // Verify w3 is still intact
         Workout remaining = remainingWorkouts.get(1);
@@ -173,8 +180,8 @@ public class WorkoutManagerDeleteTest {
         OperationResult<List<Workout>> resultZero = workoutManager.deleteWorkout(0);
         OperationResult<List<Workout>> resultNegative = workoutManager.deleteWorkout(-1);
 
-        assertFalse(resultZero.isSuccess());
-        assertFalse(resultNegative.isSuccess());
+        assertFalse(resultZero.success());
+        assertFalse(resultNegative.success());
     }
 
 }

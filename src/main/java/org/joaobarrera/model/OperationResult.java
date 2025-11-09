@@ -1,20 +1,27 @@
 package org.joaobarrera.model;
 
-public class OperationResult<T> {
-    private final boolean success;
-    private final T data;
-    private final String message;
+/*
+ * Joao Barrera
+ * CEN 3024 - Software Development 1
+ * November 9, 2025
+ * OperationResult.java
+ */
 
-    public OperationResult(boolean success, T data, String message) {
-        this.success = success;
-        this.data = data;
-        this.message = message;
-    }
+/**
+ * Generic record representing the result of an operation in the Workout Logger application.
+ * <p>
+ * Encapsulates whether the operation was successful, the data returned by the operation,
+ * and an optional message describing the result or any errors.
+ */
 
-    public boolean isSuccess() { return success; }
-    public T getData() { return data; }
-    public String getMessage() { return message; }
-
+public record OperationResult<T>(boolean success, T data, String message) {
+    /**
+     * Returns a string representation of the operation result.
+     * <p>
+     * Includes the success status, data, and message.
+     *
+     * @return a string describing the operation result
+     */
     @Override
     public String toString() {
         return "Success: " + success +
