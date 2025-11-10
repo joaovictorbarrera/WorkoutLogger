@@ -51,14 +51,19 @@ public class WorkoutManager {
      * @throws SQLException if a database access error occurs
      */
     public void connect(String dbFilePath) throws SQLException {
-        // Validate the file exists
         File dbFile = new File(dbFilePath);
+
+        // Validate file exists and is accessible
         if (!dbFile.exists()) {
             throw new IllegalArgumentException("Database file does not exist: " + dbFilePath);
         }
 
+        if (!isFileReadable(dbFile) && !isFileWritable(dbFile)) {
+            throw new IllegalStateException("Database file is not readable/writeable: " + dbFilePath + ". Please check file permissions and owner.");
+        }
+
         // Attempt the connection
-        String url = "jdbc:sqlite:" + dbFilePath;
+        String url = "jdbc:sqlite:" + dbFile.getAbsolutePath().replace("\\", "/");
         Connection newConnection = DriverManager.getConnection(url);
 
         // Check if the database has a Workout table
@@ -465,5 +470,21 @@ public class WorkoutManager {
         stmt.setString(4, workout.getStartDateTime().format(formatter));
         stmt.setInt(5, workout.getDuration());
         stmt.setString(6, workout.getNotes());
+    }
+
+    private boolean isFileReadable(File file) {
+        try (FileInputStream ignored = new FileInputStream(file)) {
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    private boolean isFileWritable(File file) {
+        try (FileOutputStream ignored = new FileOutputStream(file, true)) {
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
     }
 }
