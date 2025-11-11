@@ -2,6 +2,7 @@ package org.joaobarrera;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 
 /*
  * Joao Barrera
@@ -27,6 +28,8 @@ public class Main {
      * @param args command-line arguments passed to the application
      */
     public static void main(String[] args) {
-        SpringApplication.run(Main.class, args);
+        ConfigurableApplicationContext context = SpringApplication.run(Main.class, args);
+        int port = context.getEnvironment().getProperty("local.server.port", Integer.class, 8080);
+        System.out.println("Application is running on http://localhost:" + port);
     }
 }
