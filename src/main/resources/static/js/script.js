@@ -6,9 +6,6 @@ const updateWorkoutButton = document.getElementById("update-workout");
 const deleteWorkoutButton = document.getElementById("delete-workout");
 const formResultMessage = document.getElementById("formResultMessage");
 
-const setDatabaseButton = document.getElementById("set-database");
-const databaseName = document.getElementById("database-name");
-
 const convertToMilesButton = document.getElementById("convert-to-miles");
 const convertToKilometersButton = document.getElementById("convert-to-kilometers");
 
@@ -18,7 +15,7 @@ const searchInput = document.getElementById("search-input");
 let workouts = {}
 let selectedRow = null;
 
-checkDatabaseConnection()
+refreshWorkouts()
 
 reloadWorkoutsButton.addEventListener("click", refreshWorkouts)
 
@@ -157,45 +154,6 @@ convertToMilesButton.addEventListener("click", () => {
 convertToKilometersButton.addEventListener("click", () => {
     convertUnits("KILOMETERS")
 })
-
-setDatabaseButton.addEventListener("click", async () => {
-    const sqlitePath = prompt("Enter SQLite database path:");
-    if (!sqlitePath) return;
-
-    try {
-        const response = await fetch('/api/workout/database/connect?path=' + encodeURIComponent(sqlitePath), {
-            method: 'POST'
-        });
-
-        if (response.ok) {
-            setDatabaseButton.classList.add("success");
-            enableUI();
-            refreshWorkouts();
-            alert("Database connected successfully!");
-            checkDatabaseConnection();
-        } else {
-            const errorBody = await response.json();
-            window.alert("Failed to connect database:\n" + errorBody.error);
-        }
-    } catch (err) {
-        window.alert("Error connecting to database:\n" + err.message);
-    }
-});
-
-function checkDatabaseConnection() {
-    fetch("/api/workout/database/name")
-    .then(async response => {
-        response = await response.json();
-
-        if (response.name) {
-            setDatabaseButton.classList.add("success");
-            enableUI();
-            refreshWorkouts();
-            databaseName.style.display = "block";
-            databaseName.innerText = "Connnected to " + response.name;
-        }
-    })
-}
 
 function convertUnits(unitType) {
     if (confirm("Are you sure you want to convert all workouts to " + unitType + "?") === false) return
@@ -366,10 +324,6 @@ function clearWorkoutForm() {
     document.getElementById("distance").value = "";
     document.getElementById("unit").value = "KILOMETERS";
     document.getElementById("notes").value = "";
-}
-
-function enableUI() {
-    document.querySelectorAll('[disabled]').forEach(el => el.removeAttribute('disabled'));
 }
 
 // Transforms "2025-10-07T18:30:00" into Oct 07, 2025 18:30

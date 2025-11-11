@@ -1,16 +1,16 @@
+import org.joaobarrera.Main;
 import org.joaobarrera.model.OperationResult;
 import org.joaobarrera.model.UnitType;
-import org.joaobarrera.model.Workout;
+import org.joaobarrera.entity.Workout;
+import org.joaobarrera.repository.WorkoutRepository;
 import org.joaobarrera.service.WorkoutManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,30 +23,20 @@ import static org.junit.jupiter.api.Assertions.*;
  * WorkoutManagerDeleteTest.java
  * This class uses unit testing to validate the deleteWorkout() functionality.
  */
+@SpringBootTest(classes = Main.class)
+@ActiveProfiles("test")
 public class WorkoutManagerDeleteTest {
 
+    @Autowired
     private WorkoutManager workoutManager;
 
-    private static final String DB_PATH = "src/test/resources/databases/test.db";
+    @Autowired
+    private WorkoutRepository workoutRepository;
 
     @BeforeEach
-    void setUp() throws SQLException {
-        // Initialize manager
-        workoutManager = new WorkoutManager();
-
-        // Ensure test DB file exists
-        File dbFile = new File(DB_PATH);
-        if (!dbFile.exists()) {
-            throw new IllegalStateException("Test database not found: " + DB_PATH);
-        }
-
-        // Connect to test DB
-        workoutManager.connect(DB_PATH);
-
-        // Clear all rows in Workout table
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH); Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate("DELETE FROM Workout");
-        }
+    void setup() {
+        // Wipe all records before each test
+        workoutRepository.deleteAll();
     }
 
     @Test
@@ -56,7 +46,7 @@ public class WorkoutManagerDeleteTest {
         workoutManager.addWorkout(workout);
         int idToDelete = workoutManager.getAllWorkouts().data().get(0).getID();
 
-        OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
+        OperationResult<Integer> deleteResult = workoutManager.deleteWorkout(idToDelete);
 
         assertTrue(deleteResult.success());
         assertEquals(0, workoutManager.getAllWorkouts().data().size());
@@ -68,7 +58,7 @@ public class WorkoutManagerDeleteTest {
         Workout workout = new Workout(null, "Run", LocalDateTime.now(), 30, 5.0, UnitType.KILOMETERS, "");
         workoutManager.addWorkout(workout);
 
-        OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(9999);
+        OperationResult<Integer> deleteResult = workoutManager.deleteWorkout(9999);
 
         assertFalse(deleteResult.success());
         assertEquals(1, workoutManager.getAllWorkouts().data().size());
@@ -77,7 +67,7 @@ public class WorkoutManagerDeleteTest {
     @Test
     @DisplayName("Should fail to delete when workout list is empty")
     void deleteWorkout_FailsWhenListIsEmpty() {
-        OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(1);
+        OperationResult<Integer> deleteResult = workoutManager.deleteWorkout(1);
         assertFalse(deleteResult.success());
     }
 
@@ -92,7 +82,7 @@ public class WorkoutManagerDeleteTest {
 
         int idToDelete = workoutManager.getAllWorkouts().data().get(0).getID();
 
-        OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
+        OperationResult<Integer> deleteResult = workoutManager.deleteWorkout(idToDelete);
 
         assertTrue(deleteResult.success());
         assertEquals(1, workoutManager.getAllWorkouts().data().size());
@@ -112,7 +102,7 @@ public class WorkoutManagerDeleteTest {
 
         // delete second "Run"
         int idToDelete = workoutManager.getAllWorkouts().data().get(1).getID();
-        OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
+        OperationResult<Integer> deleteResult = workoutManager.deleteWorkout(idToDelete);
 
         assertTrue(deleteResult.success());
         assertEquals(1, workoutManager.getAllWorkouts().data().size());
@@ -134,7 +124,7 @@ public class WorkoutManagerDeleteTest {
 
         // Grab the ID of the workout in the middle (w2) and delete it
         int idToDelete = workoutManager.getAllWorkouts().data().get(1).getID();
-        OperationResult<List<Workout>> deleteResult = workoutManager.deleteWorkout(idToDelete);
+        OperationResult<Integer> deleteResult = workoutManager.deleteWorkout(idToDelete);
         assertTrue(deleteResult.success());
 
         // Check list size
@@ -177,8 +167,8 @@ public class WorkoutManagerDeleteTest {
     @DisplayName("Should fail when trying to delete with zero or negative ID")
     @Test
     void deleteWorkout_InvalidIDValues() {
-        OperationResult<List<Workout>> resultZero = workoutManager.deleteWorkout(0);
-        OperationResult<List<Workout>> resultNegative = workoutManager.deleteWorkout(-1);
+        OperationResult<Integer> resultZero = workoutManager.deleteWorkout(0);
+        OperationResult<Integer> resultNegative = workoutManager.deleteWorkout(-1);
 
         assertFalse(resultZero.success());
         assertFalse(resultNegative.success());

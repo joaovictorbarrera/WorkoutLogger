@@ -1,16 +1,15 @@
 package org.joaobarrera.service;
 
+import jakarta.transaction.Transactional;
 import org.joaobarrera.model.OperationResult;
 import org.joaobarrera.model.UnitType;
-import org.joaobarrera.model.Workout;
+import org.joaobarrera.entity.Workout;
+import org.joaobarrera.repository.WorkoutRepository;
 import org.springframework.stereotype.Service;
 
-import java.sql.*;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
-import java.io.*;
+import java.util.Optional;
 
 /*
  * Joao Barrera
@@ -31,79 +30,18 @@ import java.io.*;
  */
 @Service
 public class WorkoutManager {
-    private Connection connection = null;
-    private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+    private final WorkoutRepository workoutRepository;
 
     /**
-     * Default constructor.
+     * Constructs a WorkoutManager with the specified WorkoutRepository.
      * <p>
-     * Initializes the WorkoutManager service.
-     */
-    public WorkoutManager() { }
-
-    /**
-     * Connects to the specified SQLite database file.
-     * <p>
-     * Validates that the file exists, the Workout table is present,
-     * and the schema is valid. Closes any existing connection before replacing it.
+     * The WorkoutRepository provides access to persistent workout data,
+     * enabling the manager to perform CRUD operations and other business logic.
      *
-     * @param dbFilePath path to the SQLite database file
-     * @throws SQLException if a database access error occurs
+     * @param workoutRepository the repository used for database operations
      */
-    public void connect(String dbFilePath) throws SQLException {
-        File dbFile = new File(dbFilePath);
-
-        // Validate file exists and is accessible
-        if (!dbFile.exists()) {
-            throw new IllegalArgumentException("Database file does not exist: " + dbFilePath);
-        }
-
-        if (!isFileReadable(dbFile) && !isFileWritable(dbFile)) {
-            throw new IllegalStateException("Database file is not readable/writeable: " + dbFilePath + ". Please check file permissions and owner.");
-        }
-
-        // Attempt the connection
-        String url = "jdbc:sqlite:" + dbFile.getAbsolutePath().replace("\\", "/");
-        Connection newConnection = DriverManager.getConnection(url);
-
-        // Check if the database has a Workout table
-        if (!isWorkoutTablePresent(newConnection)) {
-            throw new IllegalStateException("Workout table not found in the database.");
-        }
-
-        // Check if the Workout table has all required columns
-        if (!isWorkoutTableValid(newConnection)) {
-            throw new IllegalStateException("Workout table schema is invalid.");
-        }
-
-        // if a connection already exists, close it
-        if (connection != null && !connection.isClosed()) {
-            connection.close();
-        }
-
-        // Replace connection
-        connection = newConnection;
-    }
-
-    /**
-     * Returns the current database file path if connected.
-     * <p>
-     * If no connection exists or the connection is closed, returns null.
-     *
-     * @return the full SQLite database file path or null if not connected
-     */
-    public String getCurrentDatabaseName() {
-        try {
-            if (connection == null || connection.isClosed()) return null;
-            DatabaseMetaData meta = connection.getMetaData();
-            String url = meta.getURL();
-            if (url != null && url.startsWith("jdbc:sqlite:")) {
-                return url.substring("jdbc:sqlite:".length());
-            }
-            return url;
-        } catch (SQLException e) {
-            return null;
-        }
+    public WorkoutManager(WorkoutRepository workoutRepository) {
+        this.workoutRepository = workoutRepository;
     }
 
     /**
@@ -112,27 +50,19 @@ public class WorkoutManager {
      * @param workout the Workout object to add
      * @return OperationResult containing the updated list of workouts and a success/failure message
      */
-    public OperationResult<List<Workout>> addWorkout(Workout workout) {
-        // Validate the database connection
-        OperationResult<?> result = validateDatabaseConnected();
-        if (!result.success()) return new OperationResult<>(false, null, result.message());
+    @Transactional
+    public OperationResult<Workout> addWorkout(Workout workout) {
+        try {
+            OperationResult<String> validation = validateWorkout(workout);
+            if (!validation.success()) {
+                return new OperationResult<>(false, null, validation.message());
+            }
 
-        // Validate given Workout Data
-        OperationResult<String> validationResult = validateWorkout(workout);
-        if (!validationResult.success()) {
-            return new OperationResult<>(false, null, "Workout " + workout.getName() + " has validation errors: " + validationResult.message());
-        }
-
-        // Safely injects workout data into the SQL INSERT statement and runs it with the given data
-        String sql = "INSERT INTO Workout (name, distance, unit, startDateTime, duration, notes) VALUES (?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            injectWorkoutIntoSQLStatement(workout, stmt);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
+            Workout saved = workoutRepository.save(workout);
+            return new OperationResult<>(true, saved, "Added workout: " + saved.getName());
+        } catch (Exception e) {
             return new OperationResult<>(false, null, "Error adding workout: " + e.getMessage());
         }
-
-        return new OperationResult<>(true, getAllWorkouts().data(), "Added workout: " + workout.getName());
     }
 
     /**
@@ -141,21 +71,12 @@ public class WorkoutManager {
      * @return OperationResult containing a list of all workouts and a success/failure message
      */
     public OperationResult<List<Workout>> getAllWorkouts() {
-        // Validates the database connection is good
-        OperationResult<?> result = validateDatabaseConnected();
-        if (!result.success()) return new OperationResult<>(false, null, result.message());
-
-        String sql = "SELECT * FROM Workout";
-        List<Workout> workouts = new ArrayList<>();
-
-        // Runs a SQL SELECT for ALL and converts all rows and adds to the list
-        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-            addAllRowsToWorkoutList(rs, workouts);
-        } catch (SQLException e) {
-            return new OperationResult<>(false, null, "Error retrieving all workouts: " + e.getMessage());
+        try {
+            List<Workout> workouts = workoutRepository.findAll();
+            return new OperationResult<>(true, workouts, "Retrieved all workouts.");
+        } catch (Exception e) {
+            return new OperationResult<>(false, null, "Error retrieving workouts: " + e.getMessage());
         }
-
-        return new OperationResult<>(true, workouts, "Retrieved all workouts.");
     }
 
     /**
@@ -167,37 +88,19 @@ public class WorkoutManager {
      * @return OperationResult containing a list of matching workouts and a success/failure message
      */
     public OperationResult<List<Workout>> getWorkoutsBySearchParameter(String searchTerm) {
-        // Validates if the database connection is good
-        OperationResult<?> result = validateDatabaseConnected();
-        if (!result.success()) return new OperationResult<>(false, null, result.message());
-
-        List<Workout> workouts = new ArrayList<>();
-        String sql;
-
-        // Decides whether to retrieve all for an empty search term
-        // or if SQL needs to actually do a search
-        boolean hasSearch = searchTerm != null && !searchTerm.trim().isEmpty();
-        if (hasSearch) {
-            sql = "SELECT * FROM Workout WHERE LOWER(name) LIKE ?";
-        } else {
-            sql = "SELECT * FROM Workout";
-        }
-
-        // Injects searchTerm into LIKE field then runs SQL SELECT
-        // where the lower-cased name matches the search term
-        // Converts all rows and adds to the list
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            if (hasSearch) stmt.setString(1, "%" + searchTerm.toLowerCase() + "%");
-
-            try (ResultSet rs = stmt.executeQuery()) {
-                addAllRowsToWorkoutList(rs, workouts);
+        try {
+            List<Workout> workouts;
+            if (searchTerm == null || searchTerm.trim().isEmpty()) {
+                workouts = workoutRepository.findAll();
+            } else {
+                workouts = workoutRepository.findByNameContainingIgnoreCase(searchTerm);
             }
-        } catch (SQLException e) {
+            return new OperationResult<>(true, workouts, "Found " + workouts.size() + " matching workouts.");
+        } catch (Exception e) {
             return new OperationResult<>(false, null, "Error searching workouts: " + e.getMessage());
         }
-
-        return new OperationResult<>(true, workouts, "Found " + workouts.size() + " matching workouts.");
     }
+
 
     /**
      * Updates an existing workout identified by the given ID.
@@ -208,33 +111,28 @@ public class WorkoutManager {
      * @param updatedWorkout the updated workout data
      * @return OperationResult containing the updated list of workouts and a success/failure message
      */
-    public OperationResult<List<Workout>> updateWorkout(Integer workoutID, Workout updatedWorkout) {
-        // Validates database connection is good
-        OperationResult<?> result = validateDatabaseConnected();
-        if (!result.success()) return new OperationResult<>(false, null, result.message());
+    @Transactional
+    public OperationResult<Workout> updateWorkout(Integer workoutID, Workout updatedWorkout) {
+        try {
+            OperationResult<String> validation = validateWorkout(updatedWorkout);
+            if (!validation.success()) return new OperationResult<>(false, null, validation.message());
 
-        // Validate given Workout ID
-        OperationResult<Boolean> idCheck = IDExists(workoutID);
-        if (!idCheck.success()) return new OperationResult<>(false, null, idCheck.message());
-        if (!idCheck.data()) return new OperationResult<>(false, null, "Workout with ID " + workoutID + " not found.");
+            Optional<Workout> existingOpt = workoutRepository.findById(workoutID);
+            if (existingOpt.isEmpty()) return new OperationResult<>(false, null, "Workout with ID " + workoutID + " not found.");
 
-        // Validate given Workout data
-        OperationResult<String> validationResult = validateWorkout(updatedWorkout);
-        if (!validationResult.success()) {
-            return new OperationResult<>(false, null, "Workout " + updatedWorkout.getName() + " has validation errors: " + validationResult.message());
-        }
+            Workout existing = existingOpt.get();
+            existing.setName(updatedWorkout.getName());
+            existing.setDistance(updatedWorkout.getDistance());
+            existing.setUnit(updatedWorkout.getUnit());
+            existing.setStartDateTime(updatedWorkout.getStartDateTime());
+            existing.setDuration(updatedWorkout.getDuration());
+            existing.setNotes(updatedWorkout.getNotes());
 
-        // Injects new data into SQL UPDATE statement where the ID matches the given ID
-        String sql = "UPDATE Workout SET name = ?, distance = ?, unit = ?, startDateTime = ?, duration = ?, notes = ? WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            injectWorkoutIntoSQLStatement(updatedWorkout, stmt);
-            stmt.setInt(7, workoutID);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
+            Workout saved = workoutRepository.save(existing);
+            return new OperationResult<>(true, saved, "Workout " + workoutID + " updated.");
+        } catch (Exception e) {
             return new OperationResult<>(false, null, "Error updating workout: " + e.getMessage());
         }
-
-        return new OperationResult<>(true, getAllWorkouts().data(), "Workout " + workoutID + " updated.");
     }
 
     /**
@@ -243,26 +141,17 @@ public class WorkoutManager {
      * @param workoutID the ID of the workout to delete
      * @return OperationResult containing the updated list of workouts and a success/failure message
      */
-    public OperationResult<List<Workout>> deleteWorkout(Integer workoutID) {
-        // Validates database connection is good
-        OperationResult<?> result = validateDatabaseConnected();
-        if (!result.success()) return new OperationResult<>(false, null, result.message());
-
-        // Validate given Workout ID
-        OperationResult<Boolean> idCheck = IDExists(workoutID);
-        if (!idCheck.success()) return new OperationResult<>(false, null, idCheck.message());
-        if (!idCheck.data()) return new OperationResult<>(false, null, "Workout with ID " + workoutID + " not found.");
-
-        // Runs SQL DELETE where the ID equals the given ID
-        String sql = "DELETE FROM Workout WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, workoutID);
-            stmt.executeUpdate();
-        } catch (SQLException e) {
+    @Transactional
+    public OperationResult<Integer> deleteWorkout(Integer workoutID) {
+        try {
+            if (!workoutRepository.existsById(workoutID)) {
+                return new OperationResult<>(false, null, "Workout with ID " + workoutID + " not found.");
+            }
+            workoutRepository.deleteById(workoutID);
+            return new OperationResult<>(true, workoutID, "Deleted workout ID " + workoutID);
+        } catch (Exception e) {
             return new OperationResult<>(false, null, "Error deleting workout: " + e.getMessage());
         }
-
-        return new OperationResult<>(true, getAllWorkouts().data(), "Deleted workout ID " + workoutID);
     }
 
     /**
@@ -273,52 +162,34 @@ public class WorkoutManager {
      * @param targetUnit the unit type to convert all workouts to
      * @return OperationResult containing the updated list of workouts and a success/failure message
      */
+    @Transactional
     public OperationResult<List<Workout>> convertAllUnits(UnitType targetUnit) {
-        // Validate if the database connection is good
-        OperationResult<?> result = validateDatabaseConnected();
-        if (!result.success()) return new OperationResult<>(false, null, result.message());
-
-        // Validate targetUnit is valid
-        if (targetUnit == null)
+        if (targetUnit == null) {
             return new OperationResult<>(false, null, "Target unit cannot be null.");
-
-        // Validate there are workouts to convert
-        List<Workout> workouts = getAllWorkouts().data();
-        if (workouts == null || workouts.isEmpty())
-            return new OperationResult<>(false, null, "No workouts to convert.");
-
-        // Converts all to target unit, then runs SQL UPDATE on ID with new values
-        for (Workout w : workouts) {
-            if (w.getUnit() != targetUnit) {
-                double convertedDistance = w.getUnit() == UnitType.KILOMETERS
-                        ? w.getDistance() * 0.621371   // km → miles
-                        : w.getDistance() / 0.621371;  // miles → km
-                w.setDistance(convertedDistance);
-                w.setUnit(targetUnit);
-
-                String sql = "UPDATE Workout SET distance = ?, unit = ? WHERE id = ?";
-                try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-                    stmt.setDouble(1, w.getDistance());
-                    stmt.setString(2, w.getUnit().name());
-                    stmt.setInt(3, w.getID());
-                    stmt.executeUpdate();
-                } catch (SQLException e) {
-                    return new OperationResult<>(false, null, "Error converting workout ID " + w.getID() + ": " + e.getMessage());
-                }
-            }
         }
 
-        return new OperationResult<>(true, getAllWorkouts().data(), "Converted all workouts to " + targetUnit);
+        try {
+            List<Workout> workouts = workoutRepository.findAll();
+            if (workouts.isEmpty()) return new OperationResult<>(false, null, "No workouts to convert.");
+
+            for (Workout w : workouts) {
+                if (w.getUnit() != targetUnit) {
+                    double convertedDistance = w.getUnit() == UnitType.KILOMETERS
+                            ? w.getDistance() * 0.621371
+                            : w.getDistance() / 0.621371;
+                    w.setDistance(convertedDistance);
+                    w.setUnit(targetUnit);
+                }
+            }
+            workoutRepository.saveAll(workouts);
+            return new OperationResult<>(true, workouts, "Converted all workouts to " + targetUnit);
+        } catch (Exception e) {
+            return new OperationResult<>(false, null, "Error converting workouts: " + e.getMessage());
+        }
     }
 
     // -- Validation methods --
     // All validation methods return an error message if they are invalid
-
-    // ID must be positive integer
-    private String validateID(Integer workoutID) {
-        boolean valid = workoutID != null && workoutID > 0;
-        return valid ? null : "Workout ID cannot be null and must be greater than 0." ;
-    }
 
     // Name must be a non-empty string with at most 50 characters
     private String validateName(String name) {
@@ -377,114 +248,5 @@ public class WorkoutManager {
         if (error != null) return new OperationResult<>(false, null, error);
 
         return new OperationResult<>(true, null, "Workout is valid.");
-    }
-
-    // Check if the database connection is not null and not closed, returns an error message if it's not connected
-    private OperationResult<?> validateDatabaseConnected() {
-        try {
-            if (connection == null || connection.isClosed()) {
-                return new OperationResult<>(false, null, "Not connected to database.");
-            }
-        } catch (Exception e) {
-            return new OperationResult<>(false, null, "Error checking if database is connected " + e.getMessage());
-        }
-
-        return new OperationResult<>(true, null, "Database is connected.");
-    }
-
-    // Check if a table exists
-    private boolean isWorkoutTablePresent(Connection connection) throws SQLException {
-        DatabaseMetaData meta = connection.getMetaData();
-        try (ResultSet rs = meta.getTables(null, null, "Workout", new String[]{"TABLE"})) {
-            return rs.next();
-        }
-    }
-
-    // Check if the Workout table has the correct schema
-    private boolean isWorkoutTableValid(Connection connection) throws SQLException {
-        String sql = "PRAGMA table_info(Workout)";
-        boolean idFound = false, nameFound = false, distanceFound = false, unitFound = false,
-                startDateTimeFound = false, durationFound = false, notesFound = false;
-
-        try (Statement stmt = connection.createStatement(); ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                String column = rs.getString("name");
-                switch (column) {
-                    case "id" -> idFound = true;
-                    case "name" -> nameFound = true;
-                    case "distance" -> distanceFound = true;
-                    case "unit" -> unitFound = true;
-                    case "startDateTime" -> startDateTimeFound = true;
-                    case "duration" -> durationFound = true;
-                    case "notes" -> notesFound = true;
-                }
-            }
-        }
-        return idFound && nameFound && distanceFound && unitFound && startDateTimeFound && durationFound && notesFound;
-    }
-
-    // -- Database Helper Methods --
-
-    // Checks if a given workout ID exists
-    private OperationResult<Boolean> IDExists(Integer workoutID) {
-        OperationResult<?> result = validateDatabaseConnected();
-        if (!result.success()) return new OperationResult<>(false, null, result.message());
-
-        String validateIDResult = validateID(workoutID);
-        if (validateIDResult != null) return new OperationResult<>(false, null, validateIDResult);
-
-        String sql = "SELECT COUNT(*) FROM Workout WHERE id = ?";
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.setInt(1, workoutID);
-            try (ResultSet rs = stmt.executeQuery()) {
-                boolean exists = rs.next() && rs.getInt(1) > 0;
-                return new OperationResult<>(true, exists, exists ? "ID exists." : "ID does not exist.");
-            }
-        } catch (SQLException e) {
-            return new OperationResult<>(false, null, "Error checking ID existence: " + e.getMessage());
-        }
-    }
-
-    // Receives a resultSet with workout rows (SQL)
-    // Converts each row to a Workout Object and adds to the list
-    private void addAllRowsToWorkoutList(ResultSet rs, List<Workout> workouts) throws SQLException {
-        while (rs.next()) {
-            Workout w = new Workout(
-                    rs.getInt("id"),
-                    rs.getString("name"),
-                    LocalDateTime.parse(rs.getString("startDateTime"), formatter),
-                    rs.getInt("duration"),
-                    rs.getDouble("distance"),
-                    UnitType.valueOf(rs.getString("unit")),
-                    rs.getString("notes")
-            );
-            workouts.add(w);
-        }
-    }
-
-    // Safely Injects Workout data into SQL statement
-    private void injectWorkoutIntoSQLStatement(Workout workout, PreparedStatement stmt) throws SQLException {
-        stmt.setString(1, workout.getName());
-        stmt.setDouble(2, workout.getDistance());
-        stmt.setString(3, workout.getUnit().name());
-        stmt.setString(4, workout.getStartDateTime().format(formatter));
-        stmt.setInt(5, workout.getDuration());
-        stmt.setString(6, workout.getNotes());
-    }
-
-    private boolean isFileReadable(File file) {
-        try (FileInputStream ignored = new FileInputStream(file)) {
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
-    }
-
-    private boolean isFileWritable(File file) {
-        try (FileOutputStream ignored = new FileOutputStream(file, true)) {
-            return true;
-        } catch (IOException e) {
-            return false;
-        }
     }
 }

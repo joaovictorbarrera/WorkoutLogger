@@ -1,8 +1,10 @@
-package org.joaobarrera.model;
+package org.joaobarrera.entity;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import jakarta.persistence.*;
 import org.joaobarrera.config.LocalDateTimeDeserializer;
 import org.joaobarrera.config.UnitTypeDeserializer;
+import org.joaobarrera.model.UnitType;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -21,26 +23,43 @@ import java.time.format.DateTimeFormatter;
  * unit of measurement (kilometers or miles), and optional notes.
  * <p>
  * Used for creating, updating, displaying, and persisting workout information.
+ * <p>
+ * Converted to a JPA entity to persist in SQLite via Spring Data JPA.
  */
 
+@Entity
+@Table(name = "Workout")
 public class Workout {
-    private Integer id = null;
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+
+    @Column(nullable = false, length = 50)
     private String name;
 
     @JsonDeserialize(using = LocalDateTimeDeserializer.class)
+    @Column(nullable = false)
     private LocalDateTime startDateTime;
 
     @JsonDeserialize(using = UnitTypeDeserializer.class)
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private UnitType unit;
 
+    @Column(nullable = false)
     private Integer duration; // in minutes
+
+    @Column(nullable = false)
     private Double distance;
+
+    @Column(length = 200)
     private String notes;
 
     /**
-     * Default constructor required for JSON deserialization.
+     * Default constructor required by JPA.
      */
-    public Workout () {}
+    public Workout() {}
 
     /**
      * Constructs a new Workout with all fields specified.

@@ -2,12 +2,11 @@ package org.joaobarrera.controller;
 
 import org.joaobarrera.model.OperationResult;
 import org.joaobarrera.model.UnitType;
-import org.joaobarrera.model.Workout;
+import org.joaobarrera.entity.Workout;
 import org.joaobarrera.service.WorkoutManager;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -45,41 +44,6 @@ public class WorkoutApiController {
      */
     public WorkoutApiController(WorkoutManager workoutManager) {
         this.workoutManager = workoutManager;
-    }
-
-    /**
-     * Retrieves the name of the currently connected database in a JSON format.
-     * <p>
-     * When the database is not connected, the value is null.
-     *
-     * @return JSON object where the key is 'name' and the value is the database name or null
-     */
-    @GetMapping("/database/name")
-    public ResponseEntity<Map<String, Object>> getDatabaseName() {
-        String dbName = workoutManager.getCurrentDatabaseName();
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("name", dbName);
-
-        return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Attempts to connect to a database using the provided file path.
-     * <p>
-     * If the connection fails, an error message is returned.
-     *
-     * @param path the file path to the database being connected
-     * @return JSON response indicating whether the connection succeeded or failed
-     */
-    @PostMapping("/database/connect")
-    public ResponseEntity<?> connect(@RequestParam String path) {
-        try {
-            workoutManager.connect(path);
-            return ResponseEntity.ok(Map.of("message", "Database connected successfully."));
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("error", e.getMessage()));
-        }
     }
 
     /**
@@ -127,7 +91,7 @@ public class WorkoutApiController {
      */
     @PostMapping("/create")
     public ResponseEntity<?> createWorkout (@RequestBody Workout workout) {
-        OperationResult<List<Workout>> result = workoutManager.addWorkout(workout);
+        OperationResult<Workout> result = workoutManager.addWorkout(workout);
 
         return processResult(result);
     }
@@ -144,7 +108,7 @@ public class WorkoutApiController {
      */
     @PutMapping("/updateByID")
     public ResponseEntity<?> updateWorkout (@RequestBody Workout workout) {
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(workout.getID(), workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(workout.getID(), workout);
 
         return processResult(result);
     }
@@ -161,7 +125,7 @@ public class WorkoutApiController {
      */
     @DeleteMapping("/deleteByID")
     public ResponseEntity<?> deleteWorkout (@RequestBody Workout workout) {
-        OperationResult<List<Workout>> result = workoutManager.deleteWorkout(workout.getID());
+        OperationResult<Integer> result = workoutManager.deleteWorkout(workout.getID());
 
         return processResult(result);
     }
@@ -195,7 +159,7 @@ public class WorkoutApiController {
      * @param result the outcome of a workout-related operation
      * @return HTTP response indicating whether the operation succeeded or failed
      */
-    private ResponseEntity<?> processResult(OperationResult<List<Workout>> result) {
+    private ResponseEntity<?> processResult(OperationResult<?> result) {
         if (result.success()) {
             // 200 OK
             return ResponseEntity.ok().build();

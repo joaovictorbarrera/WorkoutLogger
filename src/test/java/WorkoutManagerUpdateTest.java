@@ -1,16 +1,16 @@
+import org.joaobarrera.Main;
 import org.joaobarrera.model.OperationResult;
 import org.joaobarrera.model.UnitType;
-import org.joaobarrera.model.Workout;
+import org.joaobarrera.entity.Workout;
+import org.joaobarrera.repository.WorkoutRepository;
 import org.joaobarrera.service.WorkoutManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -24,30 +24,21 @@ import static org.junit.jupiter.api.Assertions.*;
  * WorkoutManagerUpdateTest.java
  * This class uses unit testing to validate the updateWorkout() functionality.
  */
+@SpringBootTest(classes = Main.class)
+@ActiveProfiles("test")
 public class WorkoutManagerUpdateTest {
-
-    private WorkoutManager workoutManager;
-    private static final String DB_PATH = "src/test/resources/databases/test.db";
     private final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm");
+    
+    @Autowired
+    private WorkoutManager workoutManager;
+
+    @Autowired
+    private WorkoutRepository workoutRepository;
 
     @BeforeEach
-    void setUp() throws SQLException {
-        // Initialize manager
-        workoutManager = new WorkoutManager();
-
-        // Ensure test DB file exists
-        File dbFile = new File(DB_PATH);
-        if (!dbFile.exists()) {
-            throw new IllegalStateException("Test database not found: " + DB_PATH);
-        }
-
-        // Connect to test DB
-        workoutManager.connect(DB_PATH);
-
-        // Clear all rows in the Workout table
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH); Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate("DELETE FROM Workout");
-        }
+    void setup() {
+        // Wipe all records before each test
+        workoutRepository.deleteAll();
     }
 
     @DisplayName("Should fail to update workout when name is null")
@@ -58,7 +49,7 @@ public class WorkoutManagerUpdateTest {
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
         
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertFalse(result.success());
     }
 
@@ -70,7 +61,7 @@ public class WorkoutManagerUpdateTest {
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
         
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertFalse(result.success());
     }
 
@@ -83,7 +74,7 @@ public class WorkoutManagerUpdateTest {
         Workout updatedWorkout = new Workout(null, name50, LocalDateTime.parse("2025-10-10T12:00"), 10, 10.0, UnitType.KILOMETERS, "");
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, updatedWorkout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, updatedWorkout);
         
         assertTrue(result.success());
         assertEquals(name50, workoutManager.getAllWorkouts().data().get(0).getName());
@@ -98,7 +89,7 @@ public class WorkoutManagerUpdateTest {
         Workout updatedWorkout = new Workout(null, name51, LocalDateTime.parse("2025-10-10T12:00"), 10, 10.0, UnitType.KILOMETERS, "");
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, updatedWorkout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, updatedWorkout);
         assertFalse(result.success());
         assertEquals("Initial", workoutManager.getAllWorkouts().data().get(0).getName());
     }
@@ -110,7 +101,7 @@ public class WorkoutManagerUpdateTest {
         workoutManager.addWorkout(new Workout(null, "Initial", LocalDateTime.parse("2025-10-10T12:00"), 10, 10.0, UnitType.KILOMETERS, ""));
         
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertFalse(result.success());
     }
 
@@ -121,7 +112,7 @@ public class WorkoutManagerUpdateTest {
         workoutManager.addWorkout(new Workout(null, "Initial", LocalDateTime.parse("2025-10-10T12:00"), 10, 10.0, UnitType.KILOMETERS, ""));
         
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertFalse(result.success());
     }
 
@@ -132,7 +123,7 @@ public class WorkoutManagerUpdateTest {
         workoutManager.addWorkout(new Workout(null, "Initial", LocalDateTime.parse("2025-10-10T12:00"), 10, 10.0, UnitType.KILOMETERS, ""));
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertFalse(result.success());
     }
 
@@ -143,7 +134,7 @@ public class WorkoutManagerUpdateTest {
         workoutManager.addWorkout(new Workout(null, "Initial", LocalDateTime.parse("2025-10-10T12:00"), 10, 10.0, UnitType.KILOMETERS, ""));
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertFalse(result.success());
     }
 
@@ -154,7 +145,7 @@ public class WorkoutManagerUpdateTest {
         Workout workout = new Workout(null, "Test", LocalDateTime.parse("2025-10-10T12:00"), 1, 10.0, UnitType.KILOMETERS, "");
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertTrue(result.success());
     }
 
@@ -165,7 +156,7 @@ public class WorkoutManagerUpdateTest {
         Workout workout = new Workout(null, "Test", LocalDateTime.parse("2025-10-10T12:00"), 10, null, UnitType.KILOMETERS, "");
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertFalse(result.success());
     }
 
@@ -176,7 +167,7 @@ public class WorkoutManagerUpdateTest {
         Workout workout = new Workout(null, "Test", LocalDateTime.parse("2025-10-10T12:00"), 10, -10.0, UnitType.KILOMETERS, "");
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertFalse(result.success());
     }
 
@@ -187,7 +178,7 @@ public class WorkoutManagerUpdateTest {
         Workout workout = new Workout(null, "Test", LocalDateTime.parse("2025-10-10T12:00"), 10, 10.0, null, "");
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertFalse(result.success());
     }
 
@@ -199,7 +190,7 @@ public class WorkoutManagerUpdateTest {
         Workout workout = new Workout(null, "Test", LocalDateTime.parse("2025-10-10T12:00"), 10, 10.0, UnitType.KILOMETERS, notes);
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertFalse(result.success());
     }
 
@@ -211,7 +202,7 @@ public class WorkoutManagerUpdateTest {
         Workout workout = new Workout(null, "Test", LocalDateTime.parse("2025-10-10T12:00"), 10, 10.0, UnitType.KILOMETERS, notes);
 
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, workout);
         assertTrue(result.success());
     }
 
@@ -226,7 +217,7 @@ public class WorkoutManagerUpdateTest {
         // Updates 'Run' to 'Run Updated'
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
         Workout updatedWorkout = new Workout(null, "Run Updated", LocalDateTime.now().plusDays(1), 45, 10.0, UnitType.MILES, "Evening run");
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, updatedWorkout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, updatedWorkout);
 
         assertTrue(result.success());
         List<Workout> workouts = workoutManager.getAllWorkouts().data();
@@ -259,7 +250,7 @@ public class WorkoutManagerUpdateTest {
         workoutManager.addWorkout(workout);
 
         int invalidId = 9999;
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(invalidId, workout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(invalidId, workout);
 
         assertFalse(result.success());
     }
@@ -295,7 +286,7 @@ public class WorkoutManagerUpdateTest {
 
         // Perform update on workout1
         Workout updatedWorkout = new Workout(null, "Run Updated", LocalDateTime.parse("2025-10-12T06:30"), 45, 10.0, UnitType.KILOMETERS, "Longer run");
-        OperationResult<List<Workout>> result = workoutManager.updateWorkout(idToUpdate, updatedWorkout);
+        OperationResult<Workout> result = workoutManager.updateWorkout(idToUpdate, updatedWorkout);
         assertTrue(result.success());
 
         List<Workout> workoutsAfterUpdate = workoutManager.getAllWorkouts().data();
@@ -320,7 +311,7 @@ public class WorkoutManagerUpdateTest {
         int idToUpdate = workoutManager.getAllWorkouts().data().get(0).getID();
 
         // Update with the exact same object (no changes)
-        OperationResult<List<Workout>> updateResult = workoutManager.updateWorkout(idToUpdate, workout);
+        OperationResult<Workout> updateResult = workoutManager.updateWorkout(idToUpdate, workout);
 
         assertTrue(updateResult.success());
 
@@ -340,8 +331,8 @@ public class WorkoutManagerUpdateTest {
     void updateWorkout_InvalidIDValues() {
         Workout updatedWorkout = new Workout(null, "Test", LocalDateTime.parse("2025-10-10T10:00"), 30, 5.0, UnitType.KILOMETERS, "Test notes");
 
-        OperationResult<List<Workout>> resultZero = workoutManager.updateWorkout(0, updatedWorkout);
-        OperationResult<List<Workout>> resultNegative = workoutManager.updateWorkout(-1, updatedWorkout);
+        OperationResult<Workout> resultZero = workoutManager.updateWorkout(0, updatedWorkout);
+        OperationResult<Workout> resultNegative = workoutManager.updateWorkout(-1, updatedWorkout);
 
         assertFalse(resultZero.success());
         assertFalse(resultNegative.success());

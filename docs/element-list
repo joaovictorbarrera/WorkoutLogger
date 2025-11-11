@@ -2,5 +2,7 @@ unnamed package
 org.joaobarrera
 org.joaobarrera.config
 org.joaobarrera.controller
+org.joaobarrera.entity
 org.joaobarrera.model
+org.joaobarrera.repository
 org.joaobarrera.service

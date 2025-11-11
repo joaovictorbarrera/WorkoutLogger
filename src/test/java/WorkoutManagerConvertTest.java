@@ -1,16 +1,16 @@
+import org.joaobarrera.Main;
 import org.joaobarrera.model.OperationResult;
 import org.joaobarrera.model.UnitType;
-import org.joaobarrera.model.Workout;
+import org.joaobarrera.entity.Workout;
+import org.joaobarrera.repository.WorkoutRepository;
 import org.joaobarrera.service.WorkoutManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ActiveProfiles;
 
-import java.io.File;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
-import java.sql.Statement;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -23,29 +23,20 @@ import static org.junit.jupiter.api.Assertions.*;
  * WorkoutManagerConvertTest.java
  * This class uses unit testing to validate the convertUnits() functionality.
  */
+@SpringBootTest(classes = Main.class)
+@ActiveProfiles("test")
 public class WorkoutManagerConvertTest {
 
+    @Autowired
     private WorkoutManager workoutManager;
-    private static final String DB_PATH = "src/test/resources/databases/test.db";
+
+    @Autowired
+    private WorkoutRepository workoutRepository;
 
     @BeforeEach
-    void setUp() throws SQLException {
-        // Initialize manager
-        workoutManager = new WorkoutManager();
-
-        // Ensure test DB file exists
-        File dbFile = new File(DB_PATH);
-        if (!dbFile.exists()) {
-            throw new IllegalStateException("Test database not found: " + DB_PATH);
-        }
-
-        // Connect to test DB
-        workoutManager.connect(DB_PATH);
-
-        // Clear all rows in Workout table
-        try (Connection conn = DriverManager.getConnection("jdbc:sqlite:" + DB_PATH); Statement stmt = conn.createStatement()) {
-            stmt.executeUpdate("DELETE FROM Workout");
-        }
+    void setup() {
+        // Wipe all records before each test
+        workoutRepository.deleteAll();
     }
 
     @Test
