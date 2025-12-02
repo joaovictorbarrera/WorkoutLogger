@@ -12,7 +12,6 @@ const convertToKilometersButton = document.getElementById("convert-to-kilometers
 const searchForm = document.getElementById("search-form");
 const searchInput = document.getElementById("search-input");
 
-let workouts = {}
 let selectedRow = null;
 
 refreshWorkouts()
@@ -241,7 +240,6 @@ function populateWorkoutsTable(data) {
         // Reset Variables
         workoutTableBody.innerText = ""
         selectedRow = null;
-        workouts = data;
         updateSelectedButtonsVisibility()
 
         // For every workout, build a table row and append to the table body
