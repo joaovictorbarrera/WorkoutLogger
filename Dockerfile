@@ -14,8 +14,10 @@ WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
 # Copy DB
-COPY src/main/resources/mockdata.db .
+COPY src/main/resources/storage.db .
 
 EXPOSE 9000
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENV SPRING_PROFILES_ACTIVE=prod
+
+ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=${SPRING_PROFILES_ACTIVE}"]
