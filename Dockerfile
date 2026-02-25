@@ -13,6 +13,6 @@ FROM eclipse-temurin:17.0.18_8-jre-ubi9-minimal
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
-EXPOSE 3954
+EXPOSE 9000
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
