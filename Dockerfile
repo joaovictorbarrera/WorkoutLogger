@@ -13,6 +13,9 @@ FROM eclipse-temurin:17.0.18_8-jre-ubi9-minimal
 WORKDIR /app
 COPY --from=build /app/target/*.jar app.jar
 
+# Copy DB
+COPY src/main/resources/mockdata.db .
+
 EXPOSE 9000
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
