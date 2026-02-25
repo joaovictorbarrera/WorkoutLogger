@@ -5,7 +5,7 @@ WORKDIR /app
 COPY pom.xml .
 COPY src ./src
 
-RUN mvn clean package -DskipTests
+RUN mvn clean package
 
 # Stage 2: Run the app
 FROM eclipse-temurin:17.0.18_8-jre-ubi9-minimal
