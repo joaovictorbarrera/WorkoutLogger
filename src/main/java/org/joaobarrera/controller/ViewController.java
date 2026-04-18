@@ -36,6 +36,6 @@ public class ViewController {
 
     @GetMapping("/health")
     public ResponseEntity<String> health() {
-        return ResponseEntity.ok("crap");
+        return ResponseEntity.ok("OK");
     }
 }
