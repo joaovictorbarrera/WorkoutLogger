@@ -109,7 +109,7 @@
     </div>
 </div>
 
-<h2>HTTP Endpoint Breakdown (sorted by avg time)</h2>
+<h2>HTTP Endpoint Breakdown</h2>
 <table>
     <thead>
     <tr>
@@ -199,7 +199,7 @@
         document.getElementById("maxTime").innerText = maxTime.toFixed(3);
 
         const uris = (data.availableTags.find(t => t.tag === "uri")?.values || [])
-            .filter(u => !u.includes("{requiredMetricName}"));
+            .filter(u => !u.includes("/actuator"));
 
         const methods = data.availableTags.find(t => t.tag === "method")?.values || [];
 
