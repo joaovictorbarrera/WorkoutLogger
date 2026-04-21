@@ -99,11 +99,6 @@
     </div>
 
     <div class="card">
-        <h3>Total Requests</h3>
-        <div id="reqCount" class="value">-</div>
-    </div>
-
-    <div class="card">
         <h3>Total Time (s)</h3>
         <div id="totalTime" class="value">-</div>
     </div>
@@ -197,11 +192,9 @@
         const res = await fetch(`${BASE_URL}/metrics/http.server.requests`);
         const data = await res.json();
 
-        const count = data.measurements.find(m => m.statistic === "COUNT")?.value || 0;
         const totalTime = data.measurements.find(m => m.statistic === "TOTAL_TIME")?.value || 0;
         const maxTime = data.measurements.find(m => m.statistic === "MAX")?.value || 0;
 
-        document.getElementById("reqCount").innerText = count;
         document.getElementById("totalTime").innerText = totalTime.toFixed(3);
         document.getElementById("maxTime").innerText = maxTime.toFixed(3);
 
