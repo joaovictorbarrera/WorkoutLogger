@@ -51,19 +51,19 @@ public class WorkoutManager {
      * @return OperationResult containing the updated list of workouts and a success/failure message
      */
     @Transactional
-    public OperationResult<Workout> addWorkout(Workout workout) {
-        try {
-            OperationResult<String> validation = validateWorkout(workout);
-            if (!validation.success()) {
-                return new OperationResult<>(false, null, validation.message());
-            }
-
-            Workout saved = workoutRepository.save(workout);
-            return new OperationResult<>(true, saved, "Added workout: " + saved.getName());
-        } catch (Exception e) {
-            return new OperationResult<>(false, null, "Error adding workout: " + e.getMessage());
-        }
-    }
+//    public OperationResult<Workout> addWorkout(Workout workout) {
+//        try {
+//            OperationResult<String> validation = validateWorkout(workout);
+//            if (!validation.success()) {
+//                return new OperationResult<>(false, null, validation.message());
+//            }
+//
+//            Workout saved = workoutRepository.save(workout);
+//            return new OperationResult<>(true, saved, "Added workout: " + saved.getName());
+//        } catch (Exception e) {
+//            return new OperationResult<>(false, null, "Error adding workout: " + e.getMessage());
+//        }
+//    }
 
     /**
      * Retrieves all workouts stored in the database.
