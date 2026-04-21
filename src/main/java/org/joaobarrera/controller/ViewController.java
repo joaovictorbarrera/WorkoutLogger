@@ -34,6 +34,11 @@ public class ViewController {
         return "index";
     }
 
+    @GetMapping("/metrics-dashboard")
+    public String metricsDashboard() {
+        return "metrics-dashboard";
+    }
+
     @GetMapping("/health")
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("OK");
