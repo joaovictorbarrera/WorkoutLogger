@@ -43,4 +43,9 @@ public class ViewController {
     public ResponseEntity<String> health() {
         return ResponseEntity.ok("OK");
     }
+
+    @GetMapping("/test")
+    public ResponseEntity<String> test() {
+        return ResponseEntity.ok("IM RESPONDING!");
+    }
 }
