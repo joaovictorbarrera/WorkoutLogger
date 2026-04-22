@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Actuator Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e2e8f0;
+            margin: 0;
+            padding: 20px;
+        }
+
+        h1 { margin-bottom: 10px; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #1e293b;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        .card h3 {
+            margin: 0 0 10px 0;
+            font-size: 14px;
+            color: #94a3b8;
+        }
+
+        .value {
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: #1e293b;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 10px;
+            border-bottom: 1px solid #334155;
+            text-align: left;
+            font-size: 14px;
+        }
+
+        th {
+            background: #111827;
+            color: #94a3b8;
+        }
+
+        .status-ok { color: #22c55e; font-weight: bold; }
+        .status-bad { color: #ef4444; font-weight: bold; }
+
+        button {
+            padding: 8px 12px;
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        .muted { color: #94a3b8; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+<h1>Spring Boot Actuator Dashboard</h1>
+<button onclick="loadData()">Refresh</button>
+<div class="muted" id="loading">Idle</div>
+
+<div class="grid">
+    <div class="card">
+        <h3>System Health</h3>
+        <div id="health" class="value">-</div>
+    </div>
+
+    <div class="card">
+        <h3>CPU Usage</h3>
+        <div id="cpu" class="value">-</div>
+    </div>
+
+    <div class="card">
+        <h3>Disk Usage</h3>
+        <div id="disk" class="value">-</div>
+    </div>
+
+    <div class="card">
+        <h3>Total Time (s)</h3>
+        <div id="totalTime" class="value">-</div>
+    </div>
+
+    <div class="card">
+        <h3>Max Request Time</h3>
+        <div id="maxTime" class="value">-</div>
+    </div>
+</div>
+
+<h2>HTTP Endpoint Breakdown</h2>
+<table>
+    <thead>
+    <tr>
+        <th>URI</th>
+        <th>Method</th>
+        <th>Count</th>
+        <th>Total Time</th>
+        <th>Avg Time</th>
+    </tr>
+    </thead>
+    <tbody id="tableBody"></tbody>
+</table>
+
+<script>
+    const BASE_URL = "/actuator";
+
+    async function loadData() {
+        document.getElementById("loading").innerText = "Loading...";
+
+        await loadHealth();
+        await loadCpu();
+        await loadDisk();
+        await loadHttpMetrics();
+
+        document.getElementById("loading").innerText = "Updated";
+    }
+
+    async function loadHealth() {
+        const res = await fetch(`${BASE_URL}/health`);
+        const data = await res.json();
+
+        document.getElementById("health").innerHTML =
+            data.status === "UP"
+                ? '<span class="status-ok">UP</span>'
+                : '<span class="status-bad">DOWN</span>';
+    }
+
+    async function loadCpu() {
+        const res = await fetch(`${BASE_URL}/metrics/system.cpu.usage`);
+        const data = await res.json();
+
+        const value = data.measurements.find(m => m.statistic === "VALUE")?.value || 0;
+
+        document.getElementById("cpu").innerText = (value * 100).toFixed(1) + "%";
+    }
+
+    async function loadDisk() {
+        const res = await fetch(`${BASE_URL}/health`);
+        const data = await res.json();
+
+        const disk = data.components.diskSpace?.details;
+
+        if (!disk) {
+            document.getElementById("disk").innerText = "N/A";
+            return;
+        }
+
+        const total = disk.total;
+        const free = disk.free;
+        const used = total - free;
+
+        const percentUsed = (used / total) * 100;
+
+        document.getElementById("disk").innerText = percentUsed.toFixed(1) + "% used";
+    }
+
+    async function getMetric(uri, method) {
+        const url = `${BASE_URL}/metrics/http.server.requests?tag=uri:${encodeURIComponent(uri)}&tag=method:${method}`;
+
+        const res = await fetch(url);
+
+        if (!res.ok) {
+            return { measurements: [] };
+        }
+
+        return await res.json();
+    }
+
+    async function loadHttpMetrics() {
+        const res = await fetch(`${BASE_URL}/metrics/http.server.requests`);
+        const data = await res.json();
+
+        const totalTime = data.measurements.find(m => m.statistic === "TOTAL_TIME")?.value || 0;
+        const maxTime = data.measurements.find(m => m.statistic === "MAX")?.value || 0;
+
+        document.getElementById("totalTime").innerText = totalTime.toFixed(3);
+        document.getElementById("maxTime").innerText = maxTime.toFixed(3);
+
+        const uris = (data.availableTags.find(t => t.tag === "uri")?.values || [])
+            .filter(u => !u.includes("/actuator"));
+
+        const methods = data.availableTags.find(t => t.tag === "method")?.values || [];
+
+        const rows = [];
+
+        for (const uri of uris) {
+            for (const method of methods) {
+                const metric = await getMetric(uri, method);
+
+                const c = metric.measurements.find(m => m.statistic === "COUNT")?.value || 0;
+                if (c === 0) continue;
+
+                const total = metric.measurements.find(m => m.statistic === "TOTAL_TIME")?.value || 0;
+
+                const avg = total / c;
+
+                rows.push({ uri, method, count: c, total, avg });
+            }
+        }
+
+        rows.sort((a, b) => b.avg - a.avg);
+
+        const table = document.getElementById("tableBody");
+        table.innerHTML = "";
+
+        for (const r of rows) {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+            <td>${r.uri}</td>
+            <td>${r.method}</td>
+            <td>${r.count}</td>
+            <td>${r.total.toFixed(3)}</td>
+            <td>${r.avg.toFixed(4)}</td>
+        `;
+            table.appendChild(row);
+        }
+    }
+
+    loadData();
+    setInterval(loadData, 5000);
+</script>
+
+</body>
+</html>
